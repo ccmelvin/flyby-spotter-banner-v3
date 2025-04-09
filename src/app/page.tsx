@@ -1,42 +1,34 @@
-import FlightBanner from "@/components/flight-banner"
-import FlightBanner1 from "@/components/flight-banner-1"
-import FlightBanner3 from "@/components/flight-banner-3";
-import FlightBanner4 from "@/components/flight-banner-4";
-// import FlightBanner2 from "@/components/flight-banner-2";
+import FlightBannerTop from "@/components/flightBannerTop";
+import FlightBannerBottom from "@/components/flightBannerBottom";
+import FlightApproachDisplay from "@/components/flightApproachDisplay";
 
 export default function Home() {
   return (
     <>
-    <main className="min-h-screen p-8">
-       <div className="flex flex-col gap-6 max-w-[1920px] mx-auto">
-        <div className="w-full ">
-          <FlightBanner />
+      <main className="min-h-screen p-6 relative">
+        <div className="flex flex-col gap-6 max-w-[1920px] mx-auto">
+          <div className="w-full mx-[40px]">
+            <FlightBannerTop />
+          </div>
         </div>
-        <div className="w-full ">
-          <FlightBanner1 />
-        </div>
-        {/* <div className="w-min" >
-          <FlightBanner2 />
-        </div> */}
-        {/* <div className="w-full">
-          <FlightBanner3 
-          airportCode="RDU / KRDU"
-          airportName="Raleigh-Durham International Airport"
-          location="North Carolina, USA"
-          conditions="Clear"
-          temperature={30}
-          windDirection={250}
-          windSpeed={12}
-          />
-        </div> */}
-        <div className="w-full">
-          <FlightBanner4 
-         
-          />
 
-      </div>
-      </div>
-    </main>
+        <div className="mt-[250px] max-w-[900px] mx-[40px] relative z-10">
+        
+       
+        <FlightApproachDisplay
+          flight={{
+            title: "Upcoming Landing",
+            number: "1076",
+            airline: "DAL",
+            origin: "Atlanta",
+            runway: "27R",
+            originCode: "KATL",
+            registration: "N123DL",
+          }}
+          />
+          <FlightBannerBottom />
+          </div>
+      </main>
     </>
   );
 }
