@@ -12,7 +12,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mt-[250px] max-w-[900px] mx-[40px] relative z-10">
+        <div className="mt-[100px] max-w-[900px] mx-[40px] relative z-10">
         
        
         <FlightApproachDisplay
