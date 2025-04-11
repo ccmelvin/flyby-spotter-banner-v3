@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function SignIn() {
   const [deviceCode, setDeviceCode] = useState<string | null>(null);
@@ -140,43 +141,97 @@ export default function SignIn() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-center">Sign In</h1>
-        <p className="text-center text-gray-500">
-          Scan the QR code with your mobile device to sign in
-        </p>
-        
-        {userCode && (
-          <div className="text-center mb-4">
-            <p className="text-sm text-gray-500 mb-1">Or enter this code:</p>
-            <p className="text-2xl font-mono font-bold tracking-wider">{userCode}</p>
+    <div className="flex min-h-screen flex-col items-center justify-center p-4 bg-gray-50">
+        <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-xl shadow-lg">
+          {/* Logo/Header Section */}
+          <div className="text-center space-y-2">
+            <div className="flex items-center justify-center gap-3">
+              <Image
+                src="/flyby-spotter-logo.png"
+                alt="Flyby Spotter Logo"
+                width={40}
+                height={40}
+                className="h-10 w-auto object-contain"
+                priority
+              />
+              <h1 className="text-2xl font-bold text-gray-800">FLYBY SPOTTER</h1>
+            </div>
+            <p className="text-gray-600 text-[16px]">
+              Choose your preferred sign-in method
+            </p>
           </div>
-        )}
-        
-        <div className="flex justify-center p-4 bg-gray-50 rounded-lg">
-          {deviceCode && (
-            <QRCodeSVG
-              value={verificationUriComplete || ""}
-              size={256}
-              level="H"
-              includeMargin={true}
-            />
-          )}
-        </div>
-        
-        <p className="text-sm text-center text-gray-500">
-          Or visit this URL on your mobile device:
-        </p>
-        <div className="overflow-x-auto">
-          <p className="text-sm text-center font-mono bg-blue-100 p-2 rounded break-all text-blue-800">
-            {verificationUriComplete || "No URL available"}
-          </p>
-        </div>
-        <div className="mt-2 text-xs text-center text-gray-400">
-          Debug: {verificationUriComplete ? `URI exists: ${verificationUriComplete}` : "URI missing"}
+  
+          {/* Authentication Methods */}
+          <div className="grid gap-8">
+            {/* QR Code Section */}
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-gray-700 text-center">
+                Scan QR Code
+              </h2>
+              <div className="flex justify-center p-4 bg-white rounded-lg border-2 border-dashed border-gray-200 hover:border-blue-500 transition-colors duration-200">
+                {deviceCode && (
+                  <QRCodeSVG
+                    value={verificationUriComplete || ""}
+                    size={200}
+                    level="H"
+                    includeMargin={true}
+                  />
+                )}
+              </div>
+            </div>
+  
+            {/* Verification Code Section */}
+            {userCode && (
+              <div className="space-y-4 p-4 bg-blue-50 rounded-lg">
+                <div className="text-center">
+                  <p className="text-sm text-gray-600 mb-2">
+                    Enter this code on your device:
+                  </p>
+                  <p className="text-[18px] font-mono font-bold tracking-wider text-blue-800 bg-white px-4 py-2 rounded-lg inline-block">
+                    {userCode}
+                  </p>
+                </div>
+              </div>
+            )}
+  
+            {/* URL Section */}
+            <div className="space-y-3">
+              <h2 className="text-[16px] font-semibold text-gray-700 text-center">
+                Open URL Directly
+              </h2>
+              <button
+                onClick={() => {
+                  if (verificationUriComplete) {
+                    window.open(verificationUriComplete, "_blank");
+                  }
+                }}
+                className="w-full flex items-center justify-center gap-2 bg-blue-950 hover:bg-yellow-500 
+                         text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200
+                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                aria-label="Click to open verification URL in new tab"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Open Authentication Page
+              </button>
+            </div>
+          </div>
+  
+          {/* Help Text */}
+          <div className="text-center text-sm text-gray-500">
+            <p>Having trouble? Try refreshing the page or contact support.</p>
+          </div>
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
