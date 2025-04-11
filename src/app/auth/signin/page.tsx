@@ -3,11 +3,8 @@
 import { useState, useEffect } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useRouter } from "next/navigation";
-import FlightBannerTop from "@/components/flightBannerTop";
-import FlightBannerBottom from "@/components/flightBannerBottom";
-import FlightApproachDisplay from "@/components/flightApproachDisplay";
 
-export default function Home() {
+export default function SignIn() {
   const [deviceCode, setDeviceCode] = useState<string | null>(null);
   const [userCode, setUserCode] = useState<string | null>(null);
   const [verificationUri, setVerificationUri] = useState<string | null>(null);
@@ -18,28 +15,8 @@ export default function Home() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const router = useRouter();
 
-  // Check if already authenticated or handle callback
+  // Generate a device code when the page loads
   useEffect(() => {
-    // Check if we have tokens in localStorage
-    const accessToken = localStorage.getItem("auth0_access_token");
-    const refreshToken = localStorage.getItem("auth0_refresh_token");
-
-    if (accessToken && refreshToken) {
-      setAuthStatus("authenticated");
-      setIsLoading(false);
-      
-      // Extract user info from the access token
-      try {
-        const payload = JSON.parse(atob(accessToken.split('.')[1]));
-        setUserEmail(payload.email);
-      } catch (err) {
-        console.error("Error parsing access token:", err);
-      }
-      
-      return;
-    }
-
-    // Generate a device code for authentication
     async function generateDeviceCode() {
       try {
         const response = await fetch("/api/auth/device");
@@ -63,7 +40,7 @@ export default function Home() {
     }
 
     generateDeviceCode();
-  }, [router]);
+  }, []);
 
   // Poll for authentication status using device code flow
   useEffect(() => {
@@ -97,6 +74,11 @@ export default function Home() {
           }
           
           setAuthStatus("authenticated");
+          
+          // Redirect to the dashboard after a short delay
+          setTimeout(() => {
+            router.push("/");
+          }, 2000);
         }
       } catch (err) {
         console.error("Error polling for tokens:", err);
@@ -104,20 +86,7 @@ export default function Home() {
     }, 5000); // Poll every 5 seconds
 
     return () => clearInterval(interval);
-  }, [deviceCode, authStatus]);
-
-  const handleSignOut = () => {
-    // Clear tokens from localStorage
-    localStorage.removeItem("auth0_access_token");
-    localStorage.removeItem("auth0_refresh_token");
-    
-    // Reset state
-    setAuthStatus("pending");
-    setUserEmail(null);
-    
-    // Reload the page to restart the authentication flow
-    window.location.reload();
-  };
+  }, [deviceCode, authStatus, router]);
 
   // Use the verification URI complete from Auth0
   const authUrl = verificationUriComplete || "";
@@ -128,7 +97,7 @@ export default function Home() {
         <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
           <h1 className="text-2xl font-bold text-center">Loading...</h1>
           <p className="text-center text-gray-500">
-            Please wait...
+            Preparing your authentication QR code...
           </p>
         </div>
       </div>
@@ -154,46 +123,26 @@ export default function Home() {
 
   if (authStatus === "authenticated") {
     return (
-      <>
-        <main className="min-h-screen p-6 relative">
-          <div className="flex flex-col gap-6 max-w-[1920px] mx-auto">
-            <div className="w-full mx-[40px] flex justify-between items-center">
-              <FlightBannerTop />
-              <div className="flex items-center gap-4">
-                <span className="text-sm text-gray-600">Signed in as {userEmail}</span>
-                <button
-                  onClick={handleSignOut}
-                  className="py-2 px-4 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-md"
-                >
-                  Sign Out
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-[100px] max-w-[900px] mx-[40px] relative z-10">
-            <FlightApproachDisplay
-              flight={{
-                title: "Upcoming Landing",
-                number: "1076",
-                airline: "DAL",
-                origin: "Atlanta",
-                runway: "27R",
-                originCode: "KATL",
-                registration: "N123DL",
-              }}
-            />
-            <FlightBannerBottom />
-          </div>
-        </main>
-      </>
+      <div className="flex min-h-screen flex-col items-center justify-center p-4">
+        <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
+          <h1 className="text-2xl font-bold text-center text-green-600">
+            Authentication Successful!
+          </h1>
+          <p className="text-center text-gray-500">
+            You are signed in as {userEmail}
+          </p>
+          <p className="text-center text-gray-500">
+            Redirecting to dashboard...
+          </p>
+        </div>
+      </div>
     );
   }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4">
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-center">Sign In to FLYBY SPOTTER</h1>
+        <h1 className="text-2xl font-bold text-center">Sign In</h1>
         <p className="text-center text-gray-500">
           Scan the QR code with your mobile device to sign in
         </p>
@@ -223,6 +172,9 @@ export default function Home() {
           <p className="text-sm text-center font-mono bg-blue-100 p-2 rounded break-all text-blue-800">
             {verificationUriComplete || "No URL available"}
           </p>
+        </div>
+        <div className="mt-2 text-xs text-center text-gray-400">
+          Debug: {verificationUriComplete ? `URI exists: ${verificationUriComplete}` : "URI missing"}
         </div>
       </div>
     </div>
