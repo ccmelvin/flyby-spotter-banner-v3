@@ -8,7 +8,7 @@ import Image from "next/image";
 export default function SignIn() {
   const [deviceCode, setDeviceCode] = useState<string | null>(null);
   const [userCode, setUserCode] = useState<string | null>(null);
-  const [verificationUri, setVerificationUri] = useState<string | null>(null);
+  // const [verificationUri, setVerificationUri] = useState<string | null>(null);
   const [verificationUriComplete, setVerificationUriComplete] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,10 +31,11 @@ export default function SignIn() {
         
         setDeviceCode(data.deviceCode);
         setUserCode(data.userCode);
-        setVerificationUri(data.verificationUri);
+        // setVerificationUri(data.verificationUri);
         setVerificationUriComplete(data.verificationUriComplete);
         setIsLoading(false);
-      } catch (err) {
+      } catch (err: unknown) {
+        console.error("Error generating device code:", err);
         setError("Failed to generate device code");
         setIsLoading(false);
       }
@@ -90,7 +91,7 @@ export default function SignIn() {
   }, [deviceCode, authStatus, router]);
 
   // Use the verification URI complete from Auth0
-  const authUrl = verificationUriComplete || "";
+  // const authUrl = verificationUriComplete || "";
 
   if (isLoading) {
     return (

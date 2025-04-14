@@ -53,12 +53,7 @@ export default function FlightApproachDisplay({ flight }: FlightApproachDisplayP
           // Reset to hidden after a while to restart the cycle
           const resetDelay = setTimeout(() => {
             setAnimationState("hidden");
-            
-            // Optional: restart the cycle after a longer delay
-            // const restartDelay = setTimeout(() => {
-            //   setAnimationState("entering");
-            // }, 10000);
-            // return () => clearTimeout(restartDelay);
+          
           }, 1000); // Time to complete exit animation
           
           return () => clearTimeout(resetDelay);

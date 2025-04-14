@@ -1,31 +1,8 @@
 "use client";
-
-import { useEffect, useState } from "react";
 import FlightBannerTop from "../../components/FlightBannerTop";
 
 export default function BannerTop() {
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Check if we're in the browser
-    if (typeof window !== "undefined") {
-      // Check for access token
-      const accessToken = localStorage.getItem("auth0_access_token");
-
-      if (!accessToken) {
-        window.location.href = "/auth/signin";
-        return;
-      }
-
-      try {
-        // Try to decode the JWT to get user info
-        const payload = JSON.parse(atob(accessToken.split(".")[1]));
-        setUserEmail(payload.email || "User");
-      } catch (error) {
-        console.error("Error decoding token:", error);
-      }
-    }
-  }, []);
+ 
 
   return (
     <div className="min-h-screen ">
