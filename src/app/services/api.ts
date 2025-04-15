@@ -5,7 +5,7 @@ import { mockFlightData, mockAirportInfo } from '../../utils/data';
 
 // Create axios instance with default configuration
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://api.example.com',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://flyby.colonmelvin.com/api/flight-data",
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -42,6 +42,7 @@ export const fetchAirportInfo = async (airportCode: string) => {
       airportName: "Airport Information Unavailable",
       location: "",
       windDirection: 0,
+      
     };
   } catch (error) {
     console.error('Error fetching airport info:', error);

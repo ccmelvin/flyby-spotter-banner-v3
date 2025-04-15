@@ -10,50 +10,35 @@ export function useAnimationControl() {
     let isMounted = true;
 
     const animateBoxes = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      // Initial delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       while (isMounted) {
-        // Pause check
-        while (isPausedRef.current && isMounted) {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        }
-
+        // Yellow panel animation (weather)
         setActiveBox("yellow");
         setPosition("offscreen");
         await new Promise((resolve) => setTimeout(resolve, 100));
-
-        // Pause check
-        while (isPausedRef.current && isMounted) {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        }
-
+        
+        if (!isMounted) break;
         setPosition("center");
-        await new Promise((resolve) => setTimeout(resolve, 10000));
-
-        // Pause check
-        while (isPausedRef.current && isMounted) {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        }
-
+        await new Promise((resolve) => setTimeout(resolve, 8000));
+        
+        if (!isMounted) break;
         setPosition("exit");
         await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // Repeat same pattern for blue section
-        while (isPausedRef.current && isMounted) {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        }
-
+        
+        if (!isMounted) break;
+        
+        // Blue panel animation (flight)
         setActiveBox("blue");
         setPosition("offscreen");
         await new Promise((resolve) => setTimeout(resolve, 100));
-
+        
+        if (!isMounted) break;
         setPosition("center");
-        await new Promise((resolve) => setTimeout(resolve, 10000));
-
-        while (isPausedRef.current && isMounted) {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        }
-
+        await new Promise((resolve) => setTimeout(resolve, 8000));
+        
+        if (!isMounted) break;
         setPosition("exit");
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
@@ -69,11 +54,11 @@ export function useAnimationControl() {
   const getTransformClass = () => {
     switch (position) {
       case "offscreen":
-        return "-translate-x-full";
+        return "-translate-x-full"; // Start from right side
       case "center":
-        return "translate-x-0";
+        return "translate-x-0"; // Centered position
       case "exit":
-        return "-translate-x-full";
+        return "-translate-x-full"; // Exit to left side
       default:
         return "translate-x-full";
     }

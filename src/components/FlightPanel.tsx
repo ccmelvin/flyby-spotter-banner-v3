@@ -10,7 +10,7 @@ interface FlightPanelProps {
 
 export default function FlightPanel({ currentFlight, isNewEntry }: FlightPanelProps) {
   return (
-    <div className="bg-gradient-to-r from-blue-900 to-blue-950 p-8 md:p-[auto] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.2)] backdrop-blur-md relative overflow-hidden rounded-r-[10px]">
+    <div className="h-full bg-gradient-to-r from-blue-900 to-blue-950 p-7 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.2)] backdrop-blur-md rounded-tr-[10px] rounded-br-[10px]">
       <div className="text-sky-50 flex items-center justify-between">
         <div className="flex-1 flex flex-col justify-center">
           <div

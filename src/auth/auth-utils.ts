@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from "uuid";
+
 import { domain, clientId, audience, scope } from "./auth0-config";
 
 // In-memory store for device codes

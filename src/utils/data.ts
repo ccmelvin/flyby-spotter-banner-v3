@@ -25,7 +25,7 @@ export const mockFlightData = {
       "flight_time": "3h 39m",
       "status": "Arrived / Gate Arrival"
     }
-    // ... add more flights as needed
+   
   ],
   "weather": {
     "city": "Raleigh",
@@ -43,6 +43,6 @@ export const mockAirportInfo = {
     airportCode: "RDU / KRDU",
     airportName: "Raleigh-Durham International Airport",
     location: "North Carolina, USA",
-    windDirection: 270,
+    windDirection: 280,
   }
 };
