@@ -11,7 +11,7 @@ import Image from "next/image";
 export default function Home() {
   const [deviceCode, setDeviceCode] = useState<string | null>(null);
   const [userCode, setUserCode] = useState<string | null>(null);
-  const [verificationUri, setVerificationUri] = useState<string | null>(null);
+  // const [verificationUri, setVerificationUri] = useState<string | null>(null);
   const [verificationUriComplete, setVerificationUriComplete] = useState<
     string | null
   >(null);
@@ -58,10 +58,11 @@ export default function Home() {
 
         setDeviceCode(data.deviceCode);
         setUserCode(data.userCode);
-        setVerificationUri(data.verificationUri);
+        // setVerificationUri(data.verificationUri);
         setVerificationUriComplete(data.verificationUriComplete);
         setIsLoading(false);
-      } catch (err) {
+      } catch (err: unknown) {
+        console.error("Error generating device code:", err);
         setError("Failed to generate device code");
         setIsLoading(false);
       }
@@ -125,12 +126,12 @@ export default function Home() {
   };
 
   // Use the verification URI complete from Auth0
-  const authUrl = verificationUriComplete || "";
+  // const authUrl = verificationUriComplete || "";
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center p-4">
-        <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
+      <div className="flex min-h-screen flex-col items-center justify-center p-2">
+        <div className="w-full max-w-md p-10 space-y-8 bg-white rounded-lg shadow-md">
           <h1 className="text-2xl font-bold text-center">Loading...</h1>
           <p className="text-center text-gray-500">Please wait...</p>
         </div>
@@ -158,14 +159,12 @@ export default function Home() {
   if (authStatus === "authenticated") {
     return (
       <>
-        <main className="min-h-screen p-6 relative">
-          <div className="flex flex-col gap-6 max-w-[1920px] mx-auto">
+        <main className="min-h-screen p-4 relative">
+          <div className="flex flex-col gap-8 max-w-[1600px] mx-auto">
             <div className="w-full mx-[40px] flex justify-between items-center">
               <FlightBannerTop />
               <div className="flex items-center gap-4">
-                <span className="text-sm text-gray-600">
-                  Signed in as {userEmail}
-                </span>
+              
                 <button
                   onClick={handleSignOut}
                   className="py-2 px-4 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-md"

@@ -1,47 +1,40 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
 import FlightBannerBottom from "@/components/FlightBannerBottom";
 import FlightApproachDisplay from "@/components/FlightApproachDisplay";
+import { flights } from "@/data/flightData.json";
 
 export default function BannerTop() {
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [currentFlightIndex, setCurrentFlightIndex] = useState(0);
+
+
 
   useEffect(() => {
-    // Check if we're in the browser
-    if (typeof window !== "undefined") {
-      // Check for access token
-      const accessToken = localStorage.getItem("auth0_access_token");
-
-      if (!accessToken) {
-        window.location.href = "/auth/signin";
-        return;
-      }
-
-      try {
-        // Try to decode the JWT to get user info
-        const payload = JSON.parse(atob(accessToken.split(".")[1]));
-        setUserEmail(payload.email || "User");
-      } catch (error) {
-        console.error("Error decoding token:", error);
-      }
-    }
+    const interval = setInterval(() => {
+      setCurrentFlightIndex((prev) => 
+        prev === flights.length - 1 ? 0 : prev + 1
+      );
+    }, 5000);
+    return () => clearInterval(interval);
   }, []);
+
+  const currentFlight = flights[currentFlightIndex];
 
   return (
     <div className="min-h-screen ">
       <div className="mt-[30px] p-6">
-        <FlightApproachDisplay  flight={{
-                title: "Upcoming Landing",
-                number: "1076",
-                airline: "DAL",
-                origin: "Atlanta",
-                runway: "27R",
-                originCode: "KATL",
-                registration: "N123DL",
-              }}
-            />
+      <FlightApproachDisplay
+          flight={{
+            title: "Upcoming Landing",
+            number: currentFlight.flight_number,
+            flight_number: currentFlight.flight_number.substring(0, 3),
+            destination_city: currentFlight.origin_city,
+            runway: currentFlight.runway,
+            originCode: currentFlight.origin,
+            registration: currentFlight.registration,
+          }}
+        />
         <FlightBannerBottom />
       </div>
 

@@ -12,11 +12,6 @@ import {
   CloudRain,
   Plane,
   Info,
-  AlertTriangle,
-  CheckCircle,
-  Wind,
-  Eye,
-  Layers,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -49,10 +44,6 @@ interface AircraftData {
   airline: string;
 }
 
-interface AirportStatus {
-  status: "normal" | "minor-delays" | "ground-stop";
-  statusText: string;
-}
 
 interface CommentaryData {
   text: string;
@@ -146,12 +137,7 @@ export default function FlightBannerBottom() {
     },
   ];
 
-  // Airport status
-  const airportStatuses: AirportStatus[] = [
-    { status: "normal", statusText: "Normal Operations" },
-    { status: "minor-delays", statusText: "Minor Delays" },
-    { status: "ground-stop", statusText: "Ground Stop" },
-  ];
+
 
   // Live commentary snippets
   const commentaryData: CommentaryData[] = [
@@ -211,9 +197,7 @@ export default function FlightBannerBottom() {
   const [currentAircraft, setCurrentAircraft] = useState<AircraftData>(
     aircraftData[0]
   );
-  const [airportStatus, setAirportStatus] = useState<AirportStatus>(
-    airportStatuses[0]
-  );
+
   const [currentCommentary, setCurrentCommentary] = useState<CommentaryData>(
     commentaryData[0]
   );
@@ -223,9 +207,7 @@ export default function FlightBannerBottom() {
   const [currentTime, setCurrentTime] = useState<string>(
     new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
   );
-  const [currentSeconds, setCurrentSeconds] = useState<string>(
-    new Date().toLocaleTimeString([], { second: "2-digit" })
-  );
+
   const [showRotatingContent, setShowRotatingContent] = useState<boolean>(true);
   const commentaryRef = useRef<HTMLDivElement>(null);
 
@@ -237,11 +219,6 @@ export default function FlightBannerBottom() {
         now.toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
-        })
-      );
-      setCurrentSeconds(
-        now.toLocaleTimeString([], {
-          second: "2-digit",
         })
       );
     }, 1000);
@@ -268,17 +245,7 @@ export default function FlightBannerBottom() {
     return () => clearInterval(flightInterval);
   }, []);
 
-  // Update airport status occasionally
-  useEffect(() => {
-    let statusIndex = 0;
 
-    const statusInterval = setInterval(() => {
-      statusIndex = (statusIndex + 1) % airportStatuses.length;
-      setAirportStatus(airportStatuses[statusIndex]);
-    }, 20000);
-
-    return () => clearInterval(statusInterval);
-  }, []);
 
   // Update commentary
   useEffect(() => {
@@ -378,77 +345,29 @@ export default function FlightBannerBottom() {
     }
   };
 
-  // Get status badge color
-  const getStatusBadgeColor = (status: string) => {
-    switch (status) {
-      case "normal":
-        return "bg-emerald-100 text-emerald-700 border-emerald-200";
-      case "minor-delays":
-        return "bg-amber-100 text-amber-700 border-amber-200";
-      case "ground-stop":
-        return "bg-rose-100 text-rose-700 border-rose-200";
-      default:
-        return "bg-emerald-100 text-emerald-700 border-emerald-200";
-    }
-  };
-
-  // Render different live indicator styles
-  const renderLiveIndicator = () => {
-    return (
-      <div className="flex items-center gap-3">
-       
-        {/* <div className="relative h-5 w-5 rounded-full border border-rose-500">
-          <div className="absolute top-1/2 left-1/2 h-[1px] w-[40%] bg-rose-500 origin-left animate-[spin_3s_linear_infinite]"></div>
-          <div className="absolute top-1/2 left-1/2 h-1 w-1 rounded-full bg-rose-500 -translate-x-1/2 -translate-y-1/2"></div>
-        </div>
-        <span className="text-xs font-bold text-rose-500 tracking-widest">
-          LIVE
-        </span>
-        */}
-      </div>
-    );
-  };
-
   return (
     <Card className="w-full max-w-4xl mx-auto overflow-hidden shadow-lg">
       <CardHeader className="bg-slate-50  border-b-[1px] border-rose-500 px-4 py-2  p-5 rounded-t-[10px] flex flex-row items-center justify-between">
         <div className="flex items-center gap-2">
-          {renderLiveIndicator()}
           <h2 className="text-xl font-bold text-blue-950 tracking-wide ml-2">
             FLYBY SPOTTER
           </h2>
         </div>
-        {/* <div className="flex items-center gap-2">
-          <Badge
-            variant="outline"
-            className={`${getStatusBadgeColor(airportStatus.status)} border`}
-          >
-            {airportStatus.status === "normal" && (
-              <CheckCircle className="h-3 w-3 mr-1" />
-            )}
-            {airportStatus.status === "minor-delays" && (
-              <AlertTriangle className="h-3 w-3 mr-1" />
-            )}
-            {airportStatus.status === "ground-stop" && (
-              <AlertTriangle className="h-3 w-3 mr-1" />
-            )}
-            {airportStatus.statusText}
-          </Badge>
-        </div> */}
-          <div className="flex items-center gap-3">
-        {/* Radar Sweep */}
-        <div className="relative h-5 w-5 rounded-full border border-rose-500">
-          <div className="absolute top-1/2 left-1/2 h-[1px] w-[40%] bg-rose-500 origin-left animate-[spin_3s_linear_infinite]"></div>
-          <div className="absolute top-1/2 left-1/2 h-1 w-1 rounded-full bg-rose-500 -translate-x-1/2 -translate-y-1/2"></div>
+
+        <div className="flex items-center gap-3">
+          {/* Radar Sweep */}
+          <div className="relative h-5 w-5 rounded-full border border-rose-500">
+            <div className="absolute top-1/2 left-1/2 h-[1px] w-[40%] bg-rose-500 origin-left animate-[spin_3s_linear_infinite]"></div>
+            <div className="absolute top-1/2 left-1/2 h-1 w-1 rounded-full bg-rose-500 -translate-x-1/2 -translate-y-1/2"></div>
+          </div>
+          <span className="text-xs font-bold text-rose-500 tracking-widest">
+            LIVE
+          </span>
+          {/* Digital Clock */}
+          <span className="text-xs font-mono text-blue-950 ml-1">
+            {currentTime}
+          </span>
         </div>
-        <span className="text-xs font-bold text-rose-500 tracking-widest">
-          LIVE
-        </span>
-        {/* Digital Clock */}
-        {/* <span className="text-xs font-mono text-amber-400 ml-1">
-          {currentTime}:{currentSeconds}
-        </span> */}
-      </div>
       </CardHeader>
 
       <CardContent className="p-0">
@@ -481,27 +400,6 @@ export default function FlightBannerBottom() {
                 </div>
               </div>
             </div>
-
-            {/* <div className="grid grid-cols-3 gap-2 mt-2">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1 text-xs text-slate-500">
-                  <Wind className="h-3 w-3" /> Wind
-                </div>
-                <div className="text-sm font-medium text-slate-700">{weatherData.wind}</div>
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1 text-xs text-slate-500">
-                  <Eye className="h-3 w-3" /> Vis
-                </div>
-                <div className="text-sm font-medium text-slate-700">{weatherData.visibility}</div>
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1 text-xs text-slate-500">
-                  <Layers className="h-3 w-3" /> Ceiling
-                </div>
-                <div className="text-sm font-medium text-slate-700">{weatherData.ceiling}</div>
-              </div>
-            </div> */}
           </div>
 
           {/* Flight info section */}
@@ -535,21 +433,6 @@ export default function FlightBannerBottom() {
               <div className="mt-2 text-sm text-slate-700">
                 From: {formatOrigin(currentFlight.origin)}
               </div>
-
-              {/* <div className="grid grid-cols-3 gap-2 mt-3">
-                <div className="flex flex-col">
-                  <div className="text-xs text-slate-500">Landing</div>
-                  <div className="text-sm font-medium text-slate-700">{currentFlight.landed}</div>
-                </div>
-                <div className="flex flex-col">
-                  <div className="text-xs text-slate-500">Runway</div>
-                  <div className="text-sm font-medium text-slate-700">{currentFlight.runway}</div>
-                </div>
-                <div className="flex flex-col">
-                  <div className="text-xs text-slate-500">Duration</div>
-                  <div className="text-sm font-medium text-slate-700">{currentFlight.duration}</div>
-                </div>
-              </div> */}
             </div>
           </div>
 
@@ -582,11 +465,6 @@ export default function FlightBannerBottom() {
                   {currentAircraft.registration}
                 </Badge>
               </div>
-
-              {/* <div className="mt-3">
-                <div className="text-xs text-slate-500">Operator</div>
-                <div className="text-sm font-medium text-slate-700">{currentAircraft.airline}</div>
-              </div> */}
             </div>
           </div>
         </div>
