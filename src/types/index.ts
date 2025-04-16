@@ -1,36 +1,39 @@
 // types/index.ts
-export interface Flight {
-  flight_number: string;
-  time: string;
-  type: string;
-  origin_city: string;
-  origin: string;
-  aircraft_type: string;
-  registration: string;
-  runway: string;
-  flight_time: string;
-  status: string;
+export interface Weather {
+  airport_name?: string;
+  city?: string;
+  description?: string;
+  icon?: string;
+  latitude?: number;
+  longitude?: number;
+  main?: string;
+  raw_metar?: string;
+  temperature?: number;
+  temperature_celsius?: number;
+  visibility?: number;
+  wind?: number;
+  wind_direction: number;
+  wind_gusts?: number;
 }
 
-export interface Weather {
-  city: string;
-  temperature: number;
-  feels_like: number;
-  wind: number;
-  timezone: number;
-  icon: string;
+export interface Flight {
+  flight_number?: string;
+  time?: string;
+  type?: 'arrival' | 'departure';
+  origin_city?: string;
+  origin?: string;
+  destination_city?: string;
+  destination?: string;
+  aircraft_type?: string;
+  registration?: string;
+  gate?: string | null;
+  status?: string;
+  airline?: string | null;
+  flight_time?: string;
+  diverted?: boolean;
 }
 
 export interface AirportData {
   flights: Flight[];
   weather: Weather;
-}
-
-export interface AirportDisplayProps {
-  airportCode?: string;
-  airportName?: string;
-  location?: string;
-  windDirection?: number;
-  windSpeed?: number;
-  timeZone?: "east" | "west";
 }

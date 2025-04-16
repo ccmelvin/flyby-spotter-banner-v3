@@ -1,72 +1,91 @@
-// components/FlightBannerTop.tsx
+// FlightBannerTop.tsx
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { fetchAirportInfo } from "../app/services/api";
+import { fetchAirportData } from "../app/services/api";
 import { useAnimationControl } from "../hooks/useAnimationControl";
-import { useAirportData } from "../hooks/useAirportData";
 import WeatherPanel from "./WeatherPanel";
 import FlightPanel from "./FlightPanel";
-import { AirportDisplayProps } from "../types";
+import { useState, useEffect } from "react";
 
 export default function FlightBannerTop({
   airportCode = "RDU",
   airportName = "",
   location = "",
-  windDirection = 0,
-}: AirportDisplayProps) {
+
+}) {
   // Animation control
   const { activeBox, getTransformClass } = useAnimationControl();
+  const [isNewEntry, setIsNewEntry] = useState(false);
+  const [previousFlightNumber, setPreviousFlightNumber] = useState<string | null>(null);
 
-  // Fetch airport data (flights and weather)
+  // Fetch airport data
   const { 
-    currentFlight, 
-    isNewEntry, 
-    weatherData,
-    isLoading: isLoadingAirportData 
-  } = useAirportData(airportCode);
-
-  // Fetch airport info
-  const { 
-    data: airportInfo, 
-    isLoading: isLoadingAirport 
+    data: airportData,
+    isLoading,
+    error 
   } = useQuery({
-    queryKey: ["airport-info", airportCode],
-    queryFn: () => fetchAirportInfo(airportCode),
-    staleTime: 60 * 60 * 1000, // 1 hour
+    queryKey: ['airport-data', airportCode],
+    queryFn: () => fetchAirportData(airportCode),
+    refetchInterval: 30000
   });
 
-  // Use provided props or loaded data
-  const displayAirportCode = airportName ? airportCode : airportInfo?.airportCode || airportCode;
-  const displayAirportName = airportName || airportInfo?.airportName || "Loading...";
-  const displayLocation = location || airportInfo?.location || "";
-  const displayWindDirection = windDirection || airportInfo?.windDirection || 0;
+  // Track flight changes for animation
+  useEffect(() => {
+    if (airportData?.flights[0]) {
+      const currentFlightNumber = airportData.flights[0].flight_number;
+      if (previousFlightNumber && previousFlightNumber !== currentFlightNumber) {
+        setIsNewEntry(true);
+        setTimeout(() => setIsNewEntry(false), 500);
+      }
+      setPreviousFlightNumber(currentFlightNumber);
+    }
+  }, [airportData?.flights[0]?.flight_number]);
 
-  // Loading state
-  if (isLoadingAirportData || isLoadingAirport) {
-    // You could return a skeleton or loading state here
-    // For now we'll continue and show loading placeholders where needed
+  // Adapt the API response
+  const currentFlight = airportData?.flights[0] || null;
+  const weatherData = airportData?.weather ? {
+    temp: `${airportData.weather.temperature}°`,
+    condition: airportData.weather.description,
+    icon: airportData.weather.icon,
+    wind: `${airportData.weather.wind}`,
+  } : null;
+
+  // Display info
+  const displayAirportCode = airportCode;
+  const displayAirportName = airportData?.weather?.airport_name || airportName;
+  const displayLocation = `${airportData?.weather?.city || ''}, USA` || location;
+ 
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
   }
 
   return (
     <div className="flex flex-col md:flex-row relative rounded-l-[5px]">
       {/* Left section - Airport info */}
-      <div className="bg-white border-l-2 border-[#F66A6F] p-4 md:w-auto max-w-auto overflow-hidden shadow-lg">
+      <div className="bg-white border-l-2 border-[#F66A6F] p-7 md:w-auto max-w-auto overflow-hidden shadow-lg">
         <div className="text-slate-700 text-[17px]">{displayAirportCode}</div>
         <h1 className="text-[25px] md:text-1xl font-bold text-slate-700">{displayAirportName}</h1>
         <div className="text-slate-700 text-[17px] mr-3">{displayLocation}</div>
       </div>
 
       {/* Right section - Dynamic content box */}
-      <div className="relative  overflow-hidden inline-flex min-w-[550px] h-[120px] md:h-[auto]">
+      <div className="relative overflow-hidden inline-flex min-w-[750px] h-[160px] md:h-[auto]">
         {/* Weather Panel */}
-        <div className={`absolute w-full h-full  transition-transform duration-1000 ease-in-out transform ${
+        <div className={`absolute w-full h-full transition-transform duration-1000 ease-in-out transform ${
           activeBox === "yellow" ? getTransformClass() : "-translate-x-full"
         }`}>
           {weatherData && (
             <WeatherPanel
-              weatherData={weatherData}
-              windDirection={displayWindDirection}
+            weatherData={weatherData}
+            windDirection={airportData?.weather?.wind_direction}
+            isVisible={activeBox === "yellow"}
+            transformClass={getTransformClass()}
             />
           )}
         </div>
