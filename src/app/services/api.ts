@@ -1,6 +1,6 @@
 // src/app/services/api.ts
 import axios from 'axios';
-import { AirportData, Weather, Flight } from '../../types';
+import { AirportData, AirportInfoResponse } from '../../types';
 import { AIRPORT_DATA } from '../../utils/data';
 
 const isBrowser = typeof window !== 'undefined';
@@ -11,7 +11,7 @@ export class ApiService {
 
   constructor() {
     this.baseURL = process.env.NEXT_PUBLIC_API_URL || "https://flyby.colonmelvin.com/api/flight-data";
-    this.useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'false';
+    this.useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA !== 'true';
   }
 
   private async makeRequest<T>(endpoint: string): Promise<T> {
@@ -20,7 +20,6 @@ export class ApiService {
     }
 
     const accessToken = localStorage.getItem('auth0_access_token');
-    console.log('Access Token:', accessToken);
     
     return axios({
       method: 'GET',
@@ -33,41 +32,31 @@ export class ApiService {
     }).then(response => response.data);
   }
 
-  async fetchAirportData(airportCode: string): Promise<{
-    currentFlight: Flight[];
-    weatherData: Weather;
-    airportData: AirportData;
-  }> {
+  async fetchAirportData(airportCode: string): Promise<AirportData> {
     if (this.useMockData) {
       console.log('Using mock data for airport data');
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return {
-        currentFlight: AIRPORT_DATA.flights,
-        weatherData: AIRPORT_DATA.weather,
-        airportData: AIRPORT_DATA,
-      };
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+      return AIRPORT_DATA as AirportData;
     }
 
-    console.log('Fetching real data from API', this.baseURL);
-    console.log('Airport Code:', airportCode);
-    console.log('Access Token:', localStorage.getItem('auth0_access_token'));
-    console.log('airport data:', AIRPORT_DATA);
-    return this.makeRequest(`/${airportCode}`);
+    console.log('Fetching real data from API', `${this.baseURL}/${airportCode}`);
+    return this.makeRequest<AirportData>(`/${airportCode}`);
   }
 
-  async fetchAirportInfo(airportCode: string) {
+  async fetchAirportInfo(airportCode: string): Promise<AirportInfoResponse> {
     if (this.useMockData) {
       console.log('Using mock data for airport info');
       await new Promise(resolve => setTimeout(resolve, 200));
-      return AIRPORT_DATA[airportCode] || {
+      // Extract airport info from mock data or return default
+      return {
         airportCode,
-        airportName: "",
-        location: "",
-        windDirection: 0,
+        airportName: AIRPORT_DATA.weather?.airport_name || "",
+        location: AIRPORT_DATA.weather?.city || "",
+        windDirection: AIRPORT_DATA.weather?.wind_direction || 0,
       };
     }
 
-    return this.makeRequest(`/${airportCode}`);
+    return this.makeRequest<AirportInfoResponse>(`/info/${airportCode}`);
   }
 }
 
