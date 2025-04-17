@@ -11,7 +11,7 @@ export function useAnimationControl() {
 
     const animateBoxes = async () => {
       // Initial delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       while (isMounted) {
         // Yellow panel animation (weather)
@@ -21,7 +21,7 @@ export function useAnimationControl() {
         
         if (!isMounted) break;
         setPosition("center");
-        await new Promise((resolve) => setTimeout(resolve, 8000));
+        await new Promise((resolve) => setTimeout(resolve, 10000));
         
         if (!isMounted) break;
         setPosition("exit");
@@ -36,7 +36,7 @@ export function useAnimationControl() {
         
         if (!isMounted) break;
         setPosition("center");
-        await new Promise((resolve) => setTimeout(resolve, 8000));
+        await new Promise((resolve) => setTimeout(resolve, 40000));
         
         if (!isMounted) break;
         setPosition("exit");
