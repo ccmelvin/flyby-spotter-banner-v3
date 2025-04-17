@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { domain, clientId, redirectUri } from "../../../auth/auth0-config";
 
-export default function VerifyPage() {
+function VerifyContent() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -48,5 +48,24 @@ export default function VerifyPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen flex-col items-center justify-center p-4">
+          <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
+            <h1 className="text-2xl font-bold text-center">Loading...</h1>
+            <p className="text-center text-gray-500">
+              Please wait while we prepare the verification...
+            </p>
+          </div>
+        </div>
+      }
+    >
+      <VerifyContent />
+    </Suspense>
   );
 }
