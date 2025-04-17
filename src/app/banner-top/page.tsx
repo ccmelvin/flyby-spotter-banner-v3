@@ -1,5 +1,5 @@
 "use client";
-import FlightBannerTop from "../../components/FlightBannerTop";
+import FlightBannerTop from "../../components/FightBannerTop";
 
 export default function BannerTop() {
  
