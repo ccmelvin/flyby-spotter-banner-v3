@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useRouter } from "next/navigation";
-import FlightBannerTop from "@/components/FlightBannerTop";
+import FlightBannerTop from "@/components/FightBannerTop";
 import FlightBannerBottom from "@/components/FlightBannerBottom";
 import FlightApproachDisplay from "@/components/FlightApproachDisplay";
 import Image from "next/image";
