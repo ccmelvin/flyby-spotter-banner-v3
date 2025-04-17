@@ -1,3 +1,8 @@
+/*
+TODO: Refactor this page 
+
+*/
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -144,6 +149,7 @@ export default function Home() {
   if (authStatus === "authenticated") {
     return (
       <>
+
         <main className="min-h-screen p-4 ">
           <FlightBannerTop />
           <div className="mt-8 gap-4">

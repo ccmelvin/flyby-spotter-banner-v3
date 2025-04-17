@@ -1,5 +1,4 @@
-```
-    # FLYBY SPOTTER
+# FLYBY SPOTTER
 
 A Next.js application for tracking and displaying flight information with Auth0 device-based authentication.
 
@@ -80,5 +79,3 @@ yarn dev
 ## License
 
 This project is licensed under the MIT License.
-
-    ```
