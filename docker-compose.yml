@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  nextjs-app:
+    image: flyby-spotter-banner:latest
+    container_name: flyby-spotter-banner
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=https://flyby.colonmelvin.com/api/flight-data
+      - AUTH0_AUDIENCE=wss://flyby.colonmelvin.com:8000
+      - AUTH0_SCOPE=openid profile email offline_access
+    # Use tmpfs for temporary storage to reduce writes to SD card
+    tmpfs:
+      - /tmp
+      - /app/.next/cache
+    # Limit logging to prevent excessive writes
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # Set resource limits appropriate for Raspberry Pi
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M

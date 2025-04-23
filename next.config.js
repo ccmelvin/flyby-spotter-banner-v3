@@ -21,6 +21,17 @@ const nextConfig = {
       },
     ];
   },
+  // Enable standalone output mode for Docker deployment
+  output: 'standalone',
+  // Configure logging to reduce disk writes
+  logging: {
+    fetches: {
+      fullUrl: false,
+    },
+  },
+  // Disable source maps in production to reduce size and disk writes
+  productionBrowserSourceMaps: false,
 };
 
 module.exports = nextConfig;
+
