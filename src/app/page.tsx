@@ -167,7 +167,7 @@ export default function Home() {
               flight={{
                 title: "Upcoming Landing",
                 number: "1076",
-                airline: "DAL",
+                airline: "DHL",
                 origin: "Atlanta",
                 runway: "27R",
                 originCode: "KATL",

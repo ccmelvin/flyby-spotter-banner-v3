@@ -23,11 +23,11 @@ interface FlightApproachDisplayProps {
 // Helper function to get airline full name from code
 const getAirlineName = (code: string): string => {
   const airlineNames: Record<string, string> = {
+    DHL: "DHL Aviation",
     DAL: "Delta AirLines",
     UAL: "United Airlines",
     AAL: "American Airlines",
     SWA: "Southwest Airlines",
-    DHL: "DHL Aviation",
   };
 
   return airlineNames[code] || code;
