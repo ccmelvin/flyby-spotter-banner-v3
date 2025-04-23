@@ -1,6 +1,6 @@
 // FlightBannerTop.tsx
 "use client";
-
+import { useState, useEffect } from "react";
 import { useAnimationControl } from "../hooks/useAnimationControl";
 import WeatherPanel from "./WeatherPanel";
 import FlightPanel from "./FlightPanel";
@@ -28,6 +28,9 @@ const formatAirportName = (airportName: string): string => {
   return formattedName;
 };
 
+
+
+
 export default function FlightBannerTop({
   airportCode = "RDU",
   airportName = "",
@@ -37,7 +40,23 @@ export default function FlightBannerTop({
     useAirportData(airportCode);
 
   const { activeBox, getTransformClass } = useAnimationControl();
-
+  
+  const [currentTime, setCurrentTime] = useState<string>(
+    new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+  );
+  useEffect(() => {
+    const timeInterval = setInterval(() => {
+      const now = new Date();
+      setCurrentTime(
+        now.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      );
+    }, 1000);
+  
+    return () => clearInterval(timeInterval);
+  }, []);
   const displayAirportCode = airportCode;
   const displayAirportName = weatherData?.airport_name
     ? formatAirportName(weatherData.airport_name)
@@ -47,6 +66,11 @@ export default function FlightBannerTop({
   if (error) {
     return <div>Error: {error.message}</div>;
   }
+
+
+
+
+
 
   return (
     <div className="flex flex-col md:flex-row relative rounded-l-[5px]">
@@ -58,13 +82,17 @@ export default function FlightBannerTop({
       <div className="absolute top-1/2 left-1/2 h-[1px] w-[40%] bg-rose-500 origin-left animate-[spin_3s_linear_infinite]"></div>
       <div className="absolute top-1/2 left-1/2 h-1 w-1 rounded-full bg-rose-500 -translate-x-1/2 -translate-y-1/2"></div>
     </div>
-    <span className="text-[15px] font-bold text-rose-500 tracking-widest">
+    <span className="text-[18px] font-bold text-rose-500 tracking-widest">
       LIVE
     </span>
-  {/* Airport Code */}
+    <div className="mt-[3px] text-center text-[16px] mb-1 font-mono text-blue-800">
+           
+           {currentTime}
+         </div>
   <div className="text-slate-700 text-[17px]">
     {displayAirportCode} / KRDU
   </div>
+  {/* Airport Code */}
   </div>
   
   
@@ -90,6 +118,7 @@ export default function FlightBannerTop({
         >
           {weatherData && <WeatherPanel weatherData={weatherData} />}
         </div>
+        
 
         {/* Flight Panel */}
         <div

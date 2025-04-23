@@ -77,7 +77,7 @@ export default function FlightPanel({
                 {isArrival ? "Duration" : "Est. Time"}
               </div>
               <div className="text-base font-semibold whitespace-nowrap overflow-hidden text-ellipsis text-white">
-                {currentFlight.flight_time || currentFlight.status}
+                {currentFlight.flight_time || currentFlight.time}
               </div>
             </div>
           </div>
