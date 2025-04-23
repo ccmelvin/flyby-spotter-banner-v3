@@ -11,7 +11,7 @@ export class ApiService {
 
   constructor() {
     this.baseURL = process.env.NEXT_PUBLIC_API_URL || "https://flyby.colonmelvin.com/api/flight-data";
-    this.useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA !== 'true';
+    this.useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
   }
 
   private async makeRequest<T>(endpoint: string): Promise<T> {

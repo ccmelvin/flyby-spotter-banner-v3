@@ -40,6 +40,8 @@ cd flyby-spotter-banner-v3
 npm install
 # or
 yarn
+# or
+pnpm install
 ```
 
 3. Create a `.env.local` file based on `.env.local.example` and fill in your Auth0 credentials:
@@ -55,9 +57,84 @@ AUTH0_SCOPE=openid profile email offline_access
 npm run dev
 # or
 yarn dev
+# or
+pnpm dev
 ```
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Docker Deployment
+
+### Prerequisites
+
+- Docker and Docker Compose installed on your Raspberry Pi
+- Git for cloning the repository
+
+### Deployment Steps
+
+1. Clone the repository:
+```bash
+git clone https://github.com/ccmelvin/flyby-spotter-banner-v3.git
+cd flyby-spotter-banner-v3
+```
+
+2. Build and start the Docker container:
+```bash
+docker-compose up -d
+```
+
+3. Access the application at http://localhost:3000 or http://[your-raspberry-pi-ip]:3000
+
+### Using the Deployment Script
+
+A deployment script is included to simplify Docker operations:
+
+1. Make the script executable:
+```bash
+chmod +x docker-deploy.sh
+```
+
+2. Use the script for common operations:
+```bash
+# Deploy the application
+./docker-deploy.sh deploy
+
+# View logs
+./docker-deploy.sh logs
+
+# Check status
+./docker-deploy.sh status
+
+# Restart the container
+./docker-deploy.sh restart
+
+# Stop the container
+./docker-deploy.sh stop
+
+# Clean up unused Docker resources
+./docker-deploy.sh cleanup
+```
+
+### Environment Variables
+
+The Docker Compose file includes default environment variables. If you need to customize them:
+
+1. Create a `.env` file in the project root
+2. Add your custom environment variables
+3. Restart the container:
+```bash
+docker-compose down
+docker-compose up -d
+```
+
+### Raspberry Pi Optimizations
+
+The Docker setup includes several optimizations for running on a Raspberry Pi:
+
+- Uses tmpfs for temporary files to reduce writes to the SD card
+- Configures logging to minimize disk writes
+- Sets appropriate resource limits for Raspberry Pi hardware
+- Disables source maps in production to reduce size and disk writes
 
 ## Project Structure
 
@@ -82,3 +159,4 @@ yarn dev
 This project is licensed under the MIT License.
 
     ```
+
