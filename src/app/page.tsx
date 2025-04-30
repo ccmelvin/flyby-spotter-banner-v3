@@ -19,14 +19,17 @@ export default function Home() {
     string | null
   >(null);
   const [error, setError] = useState<string | null>(null);
-  const [authStatus, setAuthStatus] = useState<"pending" | "authenticated">(
-    "pending"
-  );
+  const [authStatus, setAuthStatus] = useState<
+    "pending" | "authenticated" | "checking"
+  >("checking");
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const router = useRouter();
 
   // Check if already authenticated or handle callback
   useEffect(() => {
+    // This effect will only run in the browser, not during server-side rendering
+    if (typeof window === "undefined") return;
+
     // Check if we have tokens in localStorage
     const accessToken = localStorage.getItem("auth0_access_token");
     const refreshToken = localStorage.getItem("auth0_refresh_token");
@@ -44,6 +47,9 @@ export default function Home() {
 
       return;
     }
+
+    // If no tokens found, set status to pending and generate device code
+    setAuthStatus("pending");
 
     // Generate a device code for authentication
     async function generateDeviceCode() {
@@ -139,6 +145,19 @@ export default function Home() {
           >
             Try Again
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state while checking authentication
+  if (authStatus === "checking") {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center p-4">
+        <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
+          <h1 className="text-xl font-bold text-center text-gray-800">
+            Loading...
+          </h1>
         </div>
       </div>
     );
