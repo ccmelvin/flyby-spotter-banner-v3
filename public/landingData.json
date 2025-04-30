@@ -1,0 +1,104 @@
+{
+  "aircraft": [
+    {
+      "hex": "a1b2c3",
+      "flight": "DAL1664",
+      "r": "N123DL",
+      "t": "B739",
+      "alt_baro": 650,
+      "gs": 145,
+      "baro_rate": -650,
+      "lat": 35.8801,
+      "lon": -78.788,
+      "track": 230,
+      "flightInfo": {
+        "flight_number": "DAL1664",
+        "time": "1:15 PM",
+        "type": "arrival",
+        "origin_city": "Atlanta",
+        "origin": "ATL",
+        "aircraft_type": "B739",
+        "registration": "N123DL",
+        "runway": "23R",
+        "flight_time": "1h 25m",
+        "status": "En Route / On Time",
+        "airline": "DAL"
+      }
+    },
+    {
+      "hex": "d4e5f6",
+      "flight": "UAL1076",
+      "r": "N14237",
+      "t": "B737",
+      "alt_baro": 550,
+      "gs": 140,
+      "baro_rate": -600,
+      "lat": 35.875,
+      "lon": -78.792,
+      "track": 225,
+      "flightInfo": {
+        "flight_number": "UAL1076",
+        "time": "1:05 PM",
+        "type": "arrival",
+        "origin_city": "Chicago",
+        "origin": "ORD",
+        "aircraft_type": "B737",
+        "registration": "N14237",
+        "runway": "23L",
+        "flight_time": "2h 10m",
+        "status": "En Route / On Time",
+        "airline": "UAL"
+      }
+    },
+    {
+      "hex": "g7h8i9",
+      "flight": "AAL2683",
+      "r": "N919NN",
+      "t": "B738",
+      "alt_baro": 700,
+      "gs": 150,
+      "baro_rate": -580,
+      "lat": 35.882,
+      "lon": -78.785,
+      "track": 235,
+      "flightInfo": {
+        "flight_number": "AAL2683",
+        "time": "12:38 PM",
+        "type": "arrival",
+        "origin_city": "Dallas-Fort Worth",
+        "origin": "DFW",
+        "aircraft_type": "B738",
+        "registration": "N919NN",
+        "runway": "23R",
+        "flight_time": "3h 42m",
+        "status": "Arrived / Delayed",
+        "airline": "AAL"
+      }
+    },
+    {
+      "hex": "j0k1l2",
+      "flight": "SWA1664",
+      "r": "N242WN",
+      "t": "B737",
+      "alt_baro": 500,
+      "gs": 135,
+      "baro_rate": -700,
+      "lat": 35.879,
+      "lon": -78.79,
+      "track": 228,
+      "flightInfo": {
+        "flight_number": "SWA1664",
+        "time": "12:48 PM",
+        "type": "arrival",
+        "origin_city": "Austin",
+        "origin": "AUS",
+        "aircraft_type": "B737",
+        "registration": "N242WN",
+        "runway": "23L",
+        "flight_time": "3h 37m",
+        "status": "Landed / Taxiing",
+        "airline": "SWA"
+      }
+    }
+  ]
+}

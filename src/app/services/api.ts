@@ -17,7 +17,7 @@ export class ApiService {
     this.baseURL =
       process.env.NEXT_PUBLIC_API_URL ||
       "https://flyby.colonmelvin.com/api/flight-data";
-    this.useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+    this.useMockData = process.env.NEXT_PUBLIC_MOCK_MODE === "true";
   }
 
   private async makeRequest<T>(endpoint: string): Promise<T> {
@@ -113,7 +113,19 @@ export class ApiService {
     if (this.useMockData) {
       console.log("[ApiService] Using mock data for landing aircraft");
       await new Promise((resolve) => setTimeout(resolve, 300));
-      return { aircraft: [] }; // Return mock data structure
+      try {
+        // Fetch the mock landing data from the public directory
+        const response = await fetch("/landingData.json");
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const mockData = await response.json();
+        console.log("[ApiService] Loaded mock landing data:", mockData);
+        return mockData;
+      } catch (error) {
+        console.error("[ApiService] Error loading mock landing data:", error);
+        return { aircraft: [] }; // Fallback to empty array if loading fails
+      }
     }
 
     console.log("[ApiService] Fetching landing data for RDU");

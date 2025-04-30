@@ -86,7 +86,7 @@ export default function FlightApproachDisplay({
         <div className="bg-blue-950 text-white font-bold border-b-[1px] border-blue-800 uppercase p-2 flex justify-center items-center">
           {flight.title}
         </div>
-        <div className="text-blue-900 p-4 flex justify-between items-center">
+        <div className="bg-white text-blue-900 p-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Plane className="h-5 w-5 rotate-45" />
             <span className="text-lg text-blue-800">
