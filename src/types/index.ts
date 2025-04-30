@@ -1,9 +1,24 @@
 // types.ts
 
+// Aircraft interface for landing aircraft data
+export interface Aircraft {
+  hex: string;
+  flight?: string;
+  r?: string;
+  t?: string;
+  alt_baro: number | "ground";
+  gs?: number;
+  baro_rate?: number;
+  lat?: number;
+  lon?: number;
+  track?: number;
+  flightInfo?: Flight;
+}
+
 export interface Flight {
   flight_number: string;
   time: string;
-  type: 'arrival' | 'departure';
+  type: "arrival" | "departure";
   airline?: string;
   aircraft_type?: string;
   registration?: string;
@@ -11,11 +26,11 @@ export interface Flight {
   status?: string;
   diverted?: boolean;
   flight_time?: string;
-  
+
   // For departures
   destination?: string;
   destination_city?: string;
-  
+
   // For arrivals
   origin?: string | null;
   origin_city?: string;

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import FlightBannerTop from "@/components/FightBannerTop";
 import FlightBannerBottom from "@/components/FlightBannerBottom";
 import FlightApproachDisplay from "@/components/FlightApproachDisplay";
+import LandingAlertManager from "@/components/LandingAlertManager";
 import Image from "next/image";
 
 export default function Home() {
@@ -157,17 +158,8 @@ export default function Home() {
           </div>
 
           <div className="mt-[100px] max-w-[900px] mx-[40px] relative z-10">
-            <FlightApproachDisplay
-              flight={{
-                title: "Upcoming Landing",
-                number: "1076",
-                airline: "DAL",
-                origin: "Atlanta",
-                runway: "27R",
-                originCode: "KATL",
-                registration: "N123DL",
-              }}
-            />
+            {/* Landing alert will be shown automatically when an aircraft is landing */}
+            <LandingAlertManager />
             <FlightBannerBottom />
           </div>
         </main>

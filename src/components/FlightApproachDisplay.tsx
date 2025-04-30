@@ -1,23 +1,14 @@
-"use client"
+"use client";
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Plane } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { AIRLINE_LOGOS } from "@/constants/airlines";
-
-interface Flight {
-  title: string;
-  number: string;
-  airline: keyof typeof AIRLINE_LOGOS;
-  origin: string;
-  runway: string;
-  originCode: string;
-  registration: string;
-}
+import { AIRLINE_LOGOS, getValidAirlineCode } from "@/constants/airlines";
+import { LandingFlightData } from "@/hooks/useLandingAircraft";
 
 interface FlightApproachDisplayProps {
-  flight: Flight;
+  flight: LandingFlightData;
 }
 
 // Helper function to get airline full name from code
@@ -33,41 +24,42 @@ const getAirlineName = (code: string): string => {
   return airlineNames[code] || code;
 };
 
-export default function FlightApproachDisplay({ flight }: FlightApproachDisplayProps) {
+export default function FlightApproachDisplay({
+  flight,
+}: FlightApproachDisplayProps) {
   const [animationState, setAnimationState] = useState("hidden"); // "hidden", "entering", "visible", "exiting"
-  
+
   useEffect(() => {
     // Initial delay before starting the appearance animation
     const initialDelay = setTimeout(() => {
       // Start entering animation
       setAnimationState("entering");
-      
+
       // After entering animation completes, set to visible
       const visibleDelay = setTimeout(() => {
         setAnimationState("visible");
-        
+
         // After being visible for a while, start exiting animation
         const exitDelay = setTimeout(() => {
           setAnimationState("exiting");
-          
+
           // Reset to hidden after a while to restart the cycle
           const resetDelay = setTimeout(() => {
             setAnimationState("hidden");
-          
           }, 1000); // Time to complete exit animation
-          
+
           return () => clearTimeout(resetDelay);
         }, 5000); // Time to stay visible
-        
+
         return () => clearTimeout(exitDelay);
       }, 1000); // Time to complete entering animation
-      
+
       return () => clearTimeout(visibleDelay);
     }, 2000); // Initial delay before animation starts
-    
+
     return () => clearTimeout(initialDelay);
   }, []);
-  
+
   // Add null check to prevent errors when flight is undefined
   if (!flight) {
     return null;
@@ -75,17 +67,20 @@ export default function FlightApproachDisplay({ flight }: FlightApproachDisplayP
 
   // Get the full airline name for display
   const airlineName = getAirlineName(flight.airline);
-  
+
   // Animation classes based on the current state
-  const cardAnimationClass = 
-    animationState === "hidden" ? "translate-y-24 opacity-0 pointer-events-none" :
-    animationState === "entering" ? "translate-y-0 opacity-100" :
-    animationState === "visible" ? "translate-y-0 opacity-100" :
-    "translate-y-24 opacity-0"; // exiting
+  const cardAnimationClass =
+    animationState === "hidden"
+      ? "translate-y-24 opacity-0 pointer-events-none"
+      : animationState === "entering"
+      ? "translate-y-0 opacity-100"
+      : animationState === "visible"
+      ? "translate-y-0 opacity-100"
+      : "translate-y-24 opacity-0"; // exiting
 
   return (
     <div className="  left-0 right-0 flex justify-center items-center z-[100]">
-      <Card 
+      <Card
         className={`max-w-md overflow-hidden shadow-lg border-0 rounded-[10px] transition-all duration-1000 ease-in-out ${cardAnimationClass}`}
       >
         <div className="bg-blue-950 text-white font-bold border-b-[1px] border-blue-800 uppercase p-2 flex justify-center items-center">
@@ -99,14 +94,10 @@ export default function FlightApproachDisplay({ flight }: FlightApproachDisplayP
             </span>
           </div>
           <div className="rounded-[5px] p-1 flex items-center justify-center h-45 w-45">
-            <Image
-              src={AIRLINE_LOGOS[flight.airline]}
-              alt={`${flight.airline} logo`}
-              width={70}
-              height={60}
-              className="rounded-full"
-              style={{ objectFit: "contain" }}
-            />
+            {/* Use a simple div with airline code instead of an image to avoid logo loading issues */}
+            <div className="w-[70px] h-[60px] rounded-full bg-blue-100 flex items-center justify-center text-blue-800 font-bold">
+              {flight.airline}
+            </div>
           </div>
         </div>
         {/* Flight information */}
@@ -127,12 +118,14 @@ export default function FlightApproachDisplay({ flight }: FlightApproachDisplayP
               <p className="font-medium text-blue-800">{flight.registration}</p>
             </div>
             <div className="border-l pl-4">
-              <p className="text-sm text-gray-500">Status</p>
-              <p className="font-medium text-green-600">Approaching</p>
+              <p className="text-sm text-gray-500">Flight Duration</p>
+              <p className="font-medium text-blue-800">
+                {flight.flightTime || "N/A"}
+              </p>
             </div>
             <div className="border-l pl-4">
-              <p className="text-sm text-gray-500">Runway</p>
-              <p className="font-medium text-blue-800">{flight.runway}</p>
+              <p className="text-sm text-gray-500">Status</p>
+              <p className="font-medium text-green-600">Approaching</p>
             </div>
           </div>
 

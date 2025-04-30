@@ -1,0 +1,81 @@
+{
+  "flights": [
+    {
+      "flight_number": "SWA1664",
+      "time": "12:48 PM",
+      "type": "arrival",
+      "origin_city": "Austin",
+      "origin": "AUS",
+      "aircraft_type": "B737",
+      "registration": "N242WN",
+      "runway": "23L",
+      "flight_time": "3h 37m",
+      "status": "Landed / Taxiing",
+      "airline": "SWA"
+    },
+    {
+      "flight_number": "DAL2932",
+      "time": "12:50 PM",
+      "type": "arrival",
+      "origin_city": "Detroit",
+      "origin": "DTW",
+      "aircraft_type": "A320",
+      "registration": "N355NW",
+      "runway": "23L",
+      "flight_time": "2h 15m",
+      "status": "Landed / Taxiing",
+      "airline": "DAL"
+    },
+    {
+      "flight_number": "AAL2683",
+      "time": "12:38 PM",
+      "type": "arrival",
+      "origin_city": "Dallas-Fort Worth",
+      "origin": "DFW",
+      "aircraft_type": "B738",
+      "registration": "N919NN",
+      "runway": "23R",
+      "flight_time": "3h 42m",
+      "status": "Arrived / Delayed",
+      "airline": "AAL"
+    },
+    {
+      "flight_number": "UAL1076",
+      "time": "1:05 PM",
+      "type": "arrival",
+      "origin_city": "Chicago",
+      "origin": "ORD",
+      "aircraft_type": "B737",
+      "registration": "N14237",
+      "runway": "23L",
+      "flight_time": "2h 10m",
+      "status": "En Route / On Time",
+      "airline": "UAL"
+    },
+    {
+      "flight_number": "DAL1664",
+      "time": "1:15 PM",
+      "type": "arrival",
+      "origin_city": "Atlanta",
+      "origin": "ATL",
+      "aircraft_type": "B739",
+      "registration": "N123DL",
+      "runway": "23R",
+      "flight_time": "1h 25m",
+      "status": "En Route / On Time",
+      "airline": "DAL"
+    }
+  ],
+  "weather": {
+    "city": "Raleigh",
+    "airport_name": "Raleigh-Durham International Airport",
+    "temperature": 76,
+    "feels_like": 76.08,
+    "wind": 14,
+    "wind_direction": 320,
+    "timezone": -14400,
+    "icon": "http://openweathermap.org/img/w/04d.png",
+    "description": "scattered clouds",
+    "main": "Clouds"
+  }
+}
