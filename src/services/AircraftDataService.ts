@@ -369,8 +369,8 @@ class AircraftDataService {
               this.landingAircraft.hex !== aircraft.hex);
 
           if (wouldTriggerAlert) {
-            status = LandingStatus.ALERT_TRIGGERED;
-            reason = "Met all landing criteria and would trigger alert";
+            status = LandingStatus.CRITERIA_MET;
+            reason = "Met all landing criteria and will trigger alert (waiting for display confirmation)";
           } else if (meetsAllCriteria) {
             status = LandingStatus.CRITERIA_MET;
             reason =

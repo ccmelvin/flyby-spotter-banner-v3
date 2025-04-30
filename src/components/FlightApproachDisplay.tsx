@@ -6,6 +6,7 @@ import { Plane } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { AIRLINE_LOGOS, getValidAirlineCode } from "@/constants/airlines";
 import { LandingFlightData } from "@/hooks/useLandingAircraft";
+import { LANDING_DEBUG_MODE } from "@/constants/polling";
 
 interface FlightApproachDisplayProps {
   flight: LandingFlightData;
@@ -42,17 +43,29 @@ export default function FlightApproachDisplay({
         // After being visible for a while, start exiting animation
         const exitDelay = setTimeout(() => {
           setAnimationState("exiting");
+          // Log when the alert starts exiting (if debug mode is enabled)
+          if (LANDING_DEBUG_MODE) {
+            console.log("[DEBUG] Landing alert exiting animation started");
+          }
 
           // Reset to hidden after a while to restart the cycle
           const resetDelay = setTimeout(() => {
             setAnimationState("hidden");
+            // Log when the alert is completely hidden (if debug mode is enabled)
+            if (LANDING_DEBUG_MODE) {
+              console.log("[DEBUG] Landing alert completely hidden");
+            }
           }, 1000); // Time to complete exit animation
 
           return () => clearTimeout(resetDelay);
-        }, 5000); // Time to stay visible
+        }, 45000); // Time to stay visible (increased to 45 seconds)
 
         return () => clearTimeout(exitDelay);
       }, 1000); // Time to complete entering animation
+      // Log when the alert becomes visible (if debug mode is enabled)
+      if (LANDING_DEBUG_MODE) {
+        console.log("[DEBUG] Landing alert became visible");
+      }
 
       return () => clearTimeout(visibleDelay);
     }, 2000); // Initial delay before animation starts

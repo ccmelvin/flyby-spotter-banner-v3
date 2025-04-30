@@ -41,9 +41,13 @@ export default function LandingDebugPanel() {
   }, [autoRefresh]);
 
   // Get status color
-  const getStatusColor = (status: LandingStatus): string => {
+  const getStatusColor = (status: LandingStatus, reason?: string): string => {
     switch (status) {
       case LandingStatus.ALERT_TRIGGERED:
+        // Special highlight for alerts that are actually displayed
+        if (reason && reason.includes("component is being displayed")) {
+          return "bg-green-200 text-green-900 font-bold";
+        }
         return "bg-green-100 text-green-800";
       case LandingStatus.CRITERIA_MET:
         return "bg-yellow-100 text-yellow-800";
@@ -169,10 +173,14 @@ export default function LandingDebugPanel() {
                         <td className="p-1">
                           <span
                             className={`px-1 py-0.5 rounded text-xs ${getStatusColor(
-                              entry.status
+                              entry.status,
+                              entry.reason
                             )}`}
+                            title={entry.reason}
                           >
                             {entry.status}
+                            {entry.reason && entry.reason.includes("component is being displayed") &&
+                              " ✓"}
                           </span>
                         </td>
                         <td className="p-1 text-xs">{entry.reason}</td>

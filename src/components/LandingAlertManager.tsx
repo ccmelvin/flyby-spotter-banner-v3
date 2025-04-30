@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useLandingAircraft } from "@/hooks/useLandingAircraft";
 import FlightApproachDisplay from "./FlightApproachDisplay";
+import { LANDING_DEBUG_MODE } from "@/constants/polling";
+import { LandingStatus, writeLandingDebugLog } from "@/utils/debugLogger";
 
 /**
  * LandingAlertManager Component
@@ -18,6 +20,23 @@ const LandingAlertManager: React.FC = () => {
     if (hasLandingAircraft && landingFlightData) {
       console.log("Showing landing alert for:", landingFlightData);
       setShowAlert(true);
+      // Log for debug panel correlation
+      if (LANDING_DEBUG_MODE) {
+        // Create a debug entry for the alert display
+        const debugEntry = {
+          hex: landingFlightData.registration || "unknown",
+          flight: `${landingFlightData.airline}${landingFlightData.number}`,
+          altitude: landingFlightData.altitude,
+          speed: landingFlightData.speed,
+          vertical_rate: landingFlightData.verticalRate,
+          status: LandingStatus.ALERT_TRIGGERED,
+          reason: "Alert component is being displayed",
+          timestamp: new Date().toISOString()
+        };
+        // Write to debug log
+        writeLandingDebugLog("/landing-debug-display.json", [debugEntry]);
+        console.log("[DEBUG] Landing alert display triggered and logged");
+      }
     }
   }, [hasLandingAircraft, landingFlightData]);
 
