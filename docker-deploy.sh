@@ -12,7 +12,7 @@ show_help() {
   echo "Usage: $0 [command]"
   echo ""
   echo "Commands:"
-  echo "  deploy      - Build and deploy the application"
+  echo "  deploy      - Build ARM64 image, push to registry, and deploy to Pi"
   echo "  logs        - Show container logs"
   echo "  restart     - Restart the container"
   echo "  stop        - Stop the container"
@@ -37,42 +37,72 @@ check_docker() {
 
 # Deploy the application
 deploy() {
-  echo "Building and deploying Flyby Spotter..."
-  docker-compose build
-  docker-compose up -d
-  echo "Deployment complete. Application is running at http://localhost:3000"
+  echo "Building ARM64 image for Raspberry Pi..."
+  
+  # Create and use buildx builder if needed
+  docker buildx create --use --name arm64builder || true
+  
+  # Build and push ARM64 image directly to registry
+  echo "Building and pushing to registry.colonmelvin.com..."
+  docker buildx build \
+    --platform linux/arm64/v8 \
+    -t registry.colonmelvin.com/flyby-spotter-banner:latest \
+    --push \
+    .
+
+  if [ $? -ne 0 ]; then
+    echo "Error: Build failed"
+    exit 1
+  fi
+
+  echo "Image built and pushed successfully"
+
+  # Deploy to Raspberry Pi
+  echo "Deploying to Raspberry Pi..."
+  ssh crmelvin@pi5.internal "cd /opt/apps/flyby-spotter-banner-v3 && \
+    docker-compose pull && \
+    docker-compose down && \
+    docker-compose up -d"
+
+  if [ $? -ne 0 ]; then
+    echo "Error: Deployment failed"
+    exit 1
+  fi
+
+  echo "Deployment complete. Checking container status..."
+  ssh crmelvin@pi5.internal "cd /opt/apps/flyby-spotter-banner-v3 && docker-compose ps"
 }
 
 # Show container logs
 show_logs() {
   echo "Showing container logs (press Ctrl+C to exit)..."
-  docker-compose logs -f
+  ssh crmelvin@pi5.internal "cd /opt/apps/flyby-spotter-banner-v3 && docker-compose logs -f"
 }
 
 # Restart the container
 restart() {
-  echo "Restarting container..."
-  docker-compose restart
+  echo "Restarting container on Raspberry Pi..."
+  ssh crmelvin@pi5.internal "cd /opt/apps/flyby-spotter-banner-v3 && docker-compose restart"
   echo "Container restarted."
 }
 
 # Stop the container
 stop() {
-  echo "Stopping container..."
-  docker-compose down
+  echo "Stopping container on Raspberry Pi..."
+  ssh crmelvin@pi5.internal "cd /opt/apps/flyby-spotter-banner-v3 && docker-compose down"
   echo "Container stopped."
 }
 
 # Check container status
 status() {
-  echo "Container status:"
-  docker-compose ps
+  echo "Container status on Raspberry Pi:"
+  ssh crmelvin@pi5.internal "cd /opt/apps/flyby-spotter-banner-v3 && docker-compose ps"
 }
 
 # Clean up unused Docker resources
 cleanup() {
-  echo "Cleaning up unused Docker resources..."
-  docker system prune -f
+  echo "Cleaning up unused Docker resources on Raspberry Pi..."
+  ssh crmelvin@pi5.internal "docker system prune -f"
   echo "Cleanup complete."
 }
 
