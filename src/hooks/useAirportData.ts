@@ -3,20 +3,20 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAirportData } from "../app/services/api";
 import { Flight, Weather } from "../types";
+import {
+  FLIGHT_DATA_POLLING_INTERVAL,
+  FLIGHT_ROTATION_INTERVAL,
+} from "@/constants/polling";
 
 export function useAirportData(airportCode: string) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isNewEntry, setIsNewEntry] = useState(false);
 
-  const { 
-    data,
-    isLoading,
-    error 
-  } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["airport-data", airportCode],
     queryFn: () => fetchAirportData(airportCode),
-    refetchInterval: 30000, // Refetch every 30 seconds
-    enabled: !!airportCode // Only run the query if airportCode is provided
+    refetchInterval: FLIGHT_DATA_POLLING_INTERVAL, // Use shared constant for consistency
+    enabled: !!airportCode, // Only run the query if airportCode is provided
   });
 
   // Cycle through flights
@@ -30,7 +30,7 @@ export function useAirportData(airportCode: string) {
         setTimeout(() => setIsNewEntry(false), 500);
         return nextIndex;
       });
-    }, 8000); // Change flight every 8 seconds
+    }, FLIGHT_ROTATION_INTERVAL); // Use shared constant for UI rotation
 
     return () => clearInterval(interval);
   }, [data?.flights]);
@@ -48,6 +48,6 @@ export function useAirportData(airportCode: string) {
     totalFlights,
     isLoading,
     error,
-    airportData: data
+    airportData: data,
   };
 }

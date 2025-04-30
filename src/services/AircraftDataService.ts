@@ -1,13 +1,22 @@
 // src/services/AircraftDataService.ts
 import { Aircraft, Flight } from "@/types";
 import { fetchLandingAircraft } from "@/app/services/api";
-
-// Constants
-const LANDING_ALTITUDE_THRESHOLD = 800; // feet
-const LANDING_SPEED_THRESHOLD = 180; // knots
-const NEGATIVE_VERTICAL_RATE_THRESHOLD = -100; // ft/min (negative value for descent)
-const POLLING_INTERVAL = 5 * 60 * 1000; // 5 minutes
-const FLIGHT_DATA_REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
+import {
+  LANDING_DATA_POLLING_INTERVAL,
+  FLIGHT_DATA_POLLING_INTERVAL,
+  LANDING_ALTITUDE_THRESHOLD,
+  LANDING_SPEED_THRESHOLD,
+  NEGATIVE_VERTICAL_RATE_THRESHOLD,
+  LANDING_RESET_INTERVAL,
+  LANDING_DEBUG_MODE,
+  LANDING_DEBUG_ALTITUDE_THRESHOLD,
+  LANDING_DEBUG_LOG_PATH,
+} from "@/constants/polling";
+import {
+  writeLandingDebugLog,
+  LandingDebugEntry,
+  LandingStatus,
+} from "@/utils/debugLogger";
 
 // Enable/disable debug logging and mock mode
 const DEBUG_LOGGING = process.env.NEXT_PUBLIC_DEBUG_LOGGING === "true";
@@ -27,6 +36,7 @@ class AircraftDataService {
   private landingAircraft: Aircraft | null = null;
   private pollingInterval: NodeJS.Timeout | null = null;
   private flightDataInterval: NodeJS.Timeout | null = null;
+  private landingResetTimeout: NodeJS.Timeout | null = null;
   private lastFlightDataRefresh: number = 0;
   private flightData: { flights: Flight[] } | null = null;
 
@@ -72,12 +82,12 @@ class AircraftDataService {
     // Set up polling for aircraft data
     this.pollingInterval = setInterval(() => {
       this.fetchAircraftData();
-    }, POLLING_INTERVAL);
+    }, LANDING_DATA_POLLING_INTERVAL);
 
     // Set up separate polling for flight data (less frequent)
     this.flightDataInterval = setInterval(() => {
       this.loadFlightData();
-    }, FLIGHT_DATA_REFRESH_INTERVAL);
+    }, FLIGHT_DATA_POLLING_INTERVAL);
   }
 
   /**
@@ -95,6 +105,11 @@ class AircraftDataService {
       clearInterval(this.flightDataInterval);
       this.flightDataInterval = null;
     }
+
+    if (this.landingResetTimeout) {
+      clearTimeout(this.landingResetTimeout);
+      this.landingResetTimeout = null;
+    }
   }
 
   /**
@@ -104,13 +119,13 @@ class AircraftDataService {
     // Check if we need to refresh the flight data
     const now = Date.now();
     if (
-      now - this.lastFlightDataRefresh < FLIGHT_DATA_REFRESH_INTERVAL &&
+      now - this.lastFlightDataRefresh < FLIGHT_DATA_POLLING_INTERVAL &&
       this.flightData
     ) {
       this.log(
         "Using cached flight data - next refresh in " +
           Math.round(
-            (FLIGHT_DATA_REFRESH_INTERVAL -
+            (FLIGHT_DATA_POLLING_INTERVAL -
               (now - this.lastFlightDataRefresh)) /
               1000
           ) +
@@ -316,6 +331,83 @@ class AircraftDataService {
 
     this.log(`Processing ${data.aircraft.length} aircraft`);
 
+    // Debug logging - collect all aircraft that meet debug criteria
+    if (LANDING_DEBUG_MODE) {
+      const debugEntries: LandingDebugEntry[] = [];
+      const timestamp = new Date().toISOString();
+
+      // Process all aircraft for debug logging
+      data.aircraft.forEach((aircraft) => {
+        // Skip aircraft on the ground or with invalid altitude
+        if (
+          aircraft.alt_baro === "ground" ||
+          typeof aircraft.alt_baro !== "number"
+        ) {
+          return;
+        }
+
+        // Check if it meets debug altitude threshold
+        if (aircraft.alt_baro <= LANDING_DEBUG_ALTITUDE_THRESHOLD) {
+          // Check landing criteria
+          const isLowAltitude = aircraft.alt_baro <= LANDING_ALTITUDE_THRESHOLD;
+          const hasLandingSpeed =
+            aircraft.gs !== undefined && aircraft.gs <= LANDING_SPEED_THRESHOLD;
+          // If vertical rate is not available, we'll consider it as meeting this criteria
+          const isDescending =
+            aircraft.baro_rate === undefined ||
+            aircraft.baro_rate < NEGATIVE_VERTICAL_RATE_THRESHOLD;
+
+          // Determine status and reason
+          let status: LandingStatus;
+          let reason: string;
+
+          const meetsAllCriteria =
+            isLowAltitude && hasLandingSpeed && isDescending;
+          const wouldTriggerAlert =
+            meetsAllCriteria &&
+            (!this.landingAircraft ||
+              this.landingAircraft.hex !== aircraft.hex);
+
+          if (wouldTriggerAlert) {
+            status = LandingStatus.ALERT_TRIGGERED;
+            reason = "Met all landing criteria and would trigger alert";
+          } else if (meetsAllCriteria) {
+            status = LandingStatus.CRITERIA_MET;
+            reason =
+              "Met all landing criteria but is same as previous aircraft";
+          } else if (isLowAltitude || hasLandingSpeed || isDescending) {
+            status = LandingStatus.PARTIAL_CRITERIA;
+            reason = `Met some landing criteria: ${
+              isLowAltitude ? "altitude " : ""
+            }${hasLandingSpeed ? "speed " : ""}${
+              isDescending ? "vertical_rate " : ""
+            }`;
+          } else {
+            status = LandingStatus.ALTITUDE_ONLY;
+            reason = "Only met debug altitude threshold";
+          }
+
+          // Add to debug entries
+          debugEntries.push({
+            hex: aircraft.hex,
+            flight: aircraft.flight,
+            altitude: aircraft.alt_baro,
+            speed: aircraft.gs,
+            vertical_rate: aircraft.baro_rate,
+            status,
+            reason,
+            timestamp,
+          });
+        }
+      });
+
+      // Write debug log if we have entries
+      if (debugEntries.length > 0) {
+        this.log(`Writing ${debugEntries.length} aircraft to debug log`);
+        writeLandingDebugLog(LANDING_DEBUG_LOG_PATH, debugEntries);
+      }
+    }
+
     // Find aircraft that are about to land
     const landingAircraft = data.aircraft.find((aircraft) => {
       // Skip aircraft on the ground
@@ -333,9 +425,10 @@ class AircraftDataService {
       const hasLandingSpeed =
         aircraft.gs !== undefined && aircraft.gs <= LANDING_SPEED_THRESHOLD;
 
-      // Check if it's descending (negative vertical rate)
+      // Check if it's descending (negative vertical rate) - only if vertical rate is available
+      // If vertical rate is not available, we'll consider it as meeting this criteria
       const isDescending =
-        aircraft.baro_rate !== undefined &&
+        aircraft.baro_rate === undefined ||
         aircraft.baro_rate < NEGATIVE_VERTICAL_RATE_THRESHOLD;
 
       const isLanding = isLowAltitude && hasLandingSpeed && isDescending;
@@ -412,6 +505,21 @@ class AircraftDataService {
 
       this.landingAircraft = landingAircraft;
       this.notifyListeners("landing", landingAircraft);
+
+      // Set a timeout to reset the landing aircraft after a period
+      // This allows the same aircraft to trigger the alert again
+      if (this.landingResetTimeout) {
+        clearTimeout(this.landingResetTimeout);
+      }
+
+      this.landingResetTimeout = setTimeout(() => {
+        this.log(
+          `Resetting landing aircraft detection for ${
+            landingAircraft.flight || landingAircraft.hex
+          }`
+        );
+        this.landingAircraft = null;
+      }, LANDING_RESET_INTERVAL);
     }
   }
 

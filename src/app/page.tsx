@@ -7,7 +7,9 @@ import FlightBannerTop from "@/components/FightBannerTop";
 import FlightBannerBottom from "@/components/FlightBannerBottom";
 import FlightApproachDisplay from "@/components/FlightApproachDisplay";
 import LandingAlertManager from "@/components/LandingAlertManager";
+import LandingDebugPanel from "@/components/LandingDebugPanel";
 import Image from "next/image";
+import { LANDING_DEBUG_MODE } from "@/constants/polling";
 
 export default function Home() {
   const [deviceCode, setDeviceCode] = useState<string | null>(null);
@@ -161,6 +163,8 @@ export default function Home() {
             {/* Landing alert will be shown automatically when an aircraft is landing */}
             <LandingAlertManager />
             <FlightBannerBottom />
+            {/* Debug panel will only be shown if debug mode is enabled */}
+            {LANDING_DEBUG_MODE && <LandingDebugPanel />}
           </div>
         </main>
       </>
