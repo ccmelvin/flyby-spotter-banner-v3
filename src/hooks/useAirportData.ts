@@ -15,8 +15,15 @@ export function useAirportData(airportCode: string) {
   } = useQuery({
     queryKey: ["airport-data", airportCode],
     queryFn: () => fetchAirportData(airportCode),
-    refetchInterval: 30000, // Refetch every 30 seconds
-    enabled: !!airportCode // Only run the query if airportCode is provided
+    staleTime: 60000, // Data considered fresh for 1 minute
+    cacheTime: 5 * 60 * 1000, // Cache for 5 minutes
+    refetchInterval: 60000, // Reduce polling frequency
+    retry: 3, // Retry failed requests
+    enabled: !!airportCode,
+    // Add error handling
+    onError: (error: unknown) => {
+      console.error('Failed to fetch airport data:', error);
+    }
   });
 
   // Cycle through flights
