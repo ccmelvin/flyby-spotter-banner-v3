@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import {
   LandingDebugLog,
+  LandingDebugEntry,
   readLandingDebugLogs,
   LandingStatus,
   clearLandingDebugLogs,
@@ -60,6 +61,40 @@ export default function LandingDebugPanel() {
     }
   };
 
+  // Helper function to check if an entry has triggered the landing popup
+  const isTriggeredFlight = (entry: LandingDebugEntry): boolean => {
+    return (
+      entry.status === LandingStatus.ALERT_TRIGGERED &&
+      !!entry.reason &&
+      entry.reason.includes("component is being displayed")
+    );
+  };
+
+  // Process logs to separate triggered flights
+  const processLogs = (logs: LandingDebugLog[]): {
+    triggeredFlights: Array<{ entry: LandingDebugEntry; timestamp: string }>;
+    regularLogs: LandingDebugLog[];
+  } => {
+    const triggeredFlights: Array<{ entry: LandingDebugEntry; timestamp: string }> = [];
+    // Create a deep copy of logs to avoid mutating the original
+    const processedLogs = JSON.parse(JSON.stringify(logs)) as LandingDebugLog[];
+    // Extract triggered flights from all logs
+    processedLogs.forEach(log => {
+      const triggered = log.entries.filter(entry => isTriggeredFlight(entry));
+      triggered.forEach(entry => {
+        triggeredFlights.push({
+          entry,
+          timestamp: log.last_updated
+        });
+      });
+      // Remove triggered flights from the regular logs
+      log.entries = log.entries.filter(entry => !isTriggeredFlight(entry));
+    });
+    // Filter out empty logs
+    const regularLogs = processedLogs.filter(log => log.entries.length > 0);
+    return { triggeredFlights, regularLogs };
+  };
+
   // Format timestamp
   const formatTime = (timestamp: string): string => {
     try {
@@ -109,7 +144,7 @@ export default function LandingDebugPanel() {
 
         {/* Content */}
         {isExpanded && (
-          <div className="max-h-96 overflow-y-auto">
+          <div className="h-96 overflow-y-auto" style={{ overflowY: 'auto' }}>
             {!hasLogs && (
               <div className="p-4 text-center text-gray-500">
                 <p>Waiting for landing aircraft data...</p>
@@ -118,78 +153,155 @@ export default function LandingDebugPanel() {
                 </p>
               </div>
             )}
-            {logs.map((log, logIndex) => (
-              <div key={logIndex} className="p-2 border-b border-gray-200">
-                <div className="text-xs text-gray-500 mb-1">
-                  {new Date(log.last_updated).toLocaleString()}
-                </div>
-                <table className="w-full text-xs border-collapse">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      <th className="p-1 text-left">Flight</th>
-                      <th className="p-1 text-left">Alt</th>
-                      <th className="p-1 text-left">Speed</th>
-                      <th className="p-1 text-left">V/R</th>
-                      <th className="p-1 text-left">Status</th>
-                      <th className="p-1 text-left">Reason</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {log.entries.map((entry, entryIndex) => (
-                      <tr
-                        key={`${logIndex}-${entryIndex}`}
-                        className="border-t border-gray-200"
-                      >
-                        <td className="p-1">
-                          {entry.flight || entry.hex.substring(0, 6)}
-                        </td>
-                        <td className="p-1">{entry.altitude}ft</td>
-                        <td className="p-1">
-                          {entry.speed !== undefined
-                            ? `${entry.speed}kts`
-                            : "N/A"}
-                        </td>
-                        <td className="p-1">
-                          {entry.vertical_rate !== undefined ? (
-                            <span
-                              className={
-                                entry.vertical_rate <
-                                NEGATIVE_VERTICAL_RATE_THRESHOLD
-                                  ? "text-green-600 font-bold"
-                                  : "text-red-600"
-                              }
+            {/* Process logs to separate triggered flights */}
+            {(() => {
+              const { triggeredFlights, regularLogs } = processLogs(logs);
+              return (
+                <>
+                  {/* Triggered Flights Section */}
+                  {triggeredFlights.length > 0 && (
+                    <div className="sticky top-0 z-10 bg-blue-50 border-b-2 border-blue-300 p-2">
+                      <h4 className="font-bold text-blue-800 text-sm mb-2">Active Landing Alerts</h4>
+                      <table className="w-full text-xs border-collapse">
+                        <thead>
+                          <tr className="bg-blue-100">
+                            <th className="p-1 text-left">Flight</th>
+                            <th className="p-1 text-left">Alt</th>
+                            <th className="p-1 text-left">Speed</th>
+                            <th className="p-1 text-left">V/R</th>
+                            <th className="p-1 text-left">Status</th>
+                            <th className="p-1 text-left">Time</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {triggeredFlights.map((item, index) => (
+                            <tr
+                              key={`triggered-${index}`}
+                              className="border-t border-blue-200 bg-green-50"
                             >
-                              {entry.vertical_rate}ft/min
-                            </span>
-                          ) : (
-                            <span
-                              className="text-blue-600 font-bold"
-                              title="Vertical rate not available, considered as descending"
+                              <td className="p-1 font-bold">
+                                {item.entry.flight || item.entry.hex.substring(0, 6)}
+                              </td>
+                              <td className="p-1">{item.entry.altitude}ft</td>
+                              <td className="p-1">
+                                {item.entry.speed !== undefined
+                                  ? `${item.entry.speed}kts`
+                                  : "N/A"}
+                              </td>
+                              <td className="p-1">
+                                {item.entry.vertical_rate !== undefined ? (
+                                  <span
+                                    className={
+                                      item.entry.vertical_rate <
+                                      NEGATIVE_VERTICAL_RATE_THRESHOLD
+                                        ? "text-green-600 font-bold"
+                                        : "text-red-600"
+                                    }
+                                  >
+                                    {item.entry.vertical_rate}ft/min
+                                  </span>
+                                ) : (
+                                  <span
+                                    className="text-blue-600 font-bold"
+                                    title="Vertical rate not available, considered as descending"
+                                  >
+                                    N/A (assumed ✓)
+                                  </span>
+                                )}
+                              </td>
+                              <td className="p-1">
+                                <span
+                                  className={`px-1 py-0.5 rounded text-xs ${getStatusColor(
+                                    item.entry.status,
+                                    item.entry.reason
+                                  )}`}
+                                >
+                                  {item.entry.status} ✓
+                                </span>
+                              </td>
+                              <td className="p-1 text-xs">
+                                {formatTime(item.timestamp)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                  {/* Regular Logs Section */}
+                  {regularLogs.map((log, logIndex) => (
+                    <div key={logIndex} className="p-2 border-b border-gray-200">
+                      <div className="text-xs text-gray-500 mb-1">
+                        {new Date(log.last_updated).toLocaleString()}
+                      </div>
+                      <table className="w-full text-xs border-collapse">
+                        <thead>
+                          <tr className="bg-gray-100">
+                            <th className="p-1 text-left">Flight</th>
+                            <th className="p-1 text-left">Alt</th>
+                            <th className="p-1 text-left">Speed</th>
+                            <th className="p-1 text-left">V/R</th>
+                            <th className="p-1 text-left">Status</th>
+                            <th className="p-1 text-left">Reason</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {log.entries.map((entry, entryIndex) => (
+                            <tr
+                              key={`${logIndex}-${entryIndex}`}
+                              className="border-t border-gray-200"
                             >
-                              N/A (assumed ✓)
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-1">
-                          <span
-                            className={`px-1 py-0.5 rounded text-xs ${getStatusColor(
-                              entry.status,
-                              entry.reason
-                            )}`}
-                            title={entry.reason}
-                          >
-                            {entry.status}
-                            {entry.reason && entry.reason.includes("component is being displayed") &&
-                              " ✓"}
-                          </span>
-                        </td>
-                        <td className="p-1 text-xs">{entry.reason}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ))}
+                              <td className="p-1">
+                                {entry.flight || entry.hex.substring(0, 6)}
+                              </td>
+                              <td className="p-1">{entry.altitude}ft</td>
+                              <td className="p-1">
+                                {entry.speed !== undefined
+                                  ? `${entry.speed}kts`
+                                  : "N/A"}
+                              </td>
+                              <td className="p-1">
+                                {entry.vertical_rate !== undefined ? (
+                                  <span
+                                    className={
+                                      entry.vertical_rate <
+                                      NEGATIVE_VERTICAL_RATE_THRESHOLD
+                                        ? "text-green-600 font-bold"
+                                        : "text-red-600"
+                                    }
+                                  >
+                                    {entry.vertical_rate}ft/min
+                                  </span>
+                                ) : (
+                                  <span
+                                    className="text-blue-600 font-bold"
+                                    title="Vertical rate not available, considered as descending"
+                                  >
+                                    N/A (assumed ✓)
+                                  </span>
+                                )}
+                              </td>
+                              <td className="p-1">
+                                <span
+                                  className={`px-1 py-0.5 rounded text-xs ${getStatusColor(
+                                    entry.status,
+                                    entry.reason
+                                  )}`}
+                                  title={entry.reason}
+                                >
+                                  {entry.status}
+                                </span>
+                              </td>
+                              <td className="p-1 text-xs">{entry.reason}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ))}
+                </>
+              );
+            })()}
           </div>
         )}
       </div>
