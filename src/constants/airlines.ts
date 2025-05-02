@@ -1,10 +1,12 @@
 export const AIRLINE_LOGOS = {
   DHL: "/images/airlines/dhl.svg",
-  UAL: "/images/airlines/united.svg",
+  UAL: "/images/airlines/united-airlines.svg",
   AAL: "/images/airlines/american-airlines.svg",
-  DAL: "/images/airlines/delta.png",
+  DAL: "/images/airlines/delta-airlines.svg",
   SWA: "/images/airlines/southwest.svg",
-
+  EDV: "/images/airlines/endeavor.svg", // Add Endeavor Air
+  PRIVATE: "/images/airlines/cessna.svg", // Use cessna logo for private aircraft
+  
   // Default logo for unknown airlines
   UNKNOWN: "/flyby-spotter-logo.png",
 } as const;

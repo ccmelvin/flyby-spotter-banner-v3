@@ -42,7 +42,7 @@ export function useLandingAircraft() {
       // Set up listener for landing events
       const unsubscribe = aircraftDataService.addListener((event, data) => {
         if (event === "landing") {
-          console.log("Landing aircraft detected:", data);
+          console.log("[useLandingAircraft] Landing aircraft detected:", data);
           setLandingAircraft(data);
 
           // Convert the aircraft data to the format expected by FlightApproachDisplay
@@ -59,14 +59,38 @@ export function useLandingAircraft() {
               airlineCode = flightInfo.airline;
               console.log("Using airline code from flightInfo:", airlineCode);
             } else if (data.flight) {
-              // Extract from flight number (e.g., "DAL1234" -> "DAL")
-              // Most flight numbers have 3-letter airline code followed by numbers
-              const match = data.flight.trim().match(/^([A-Z]{3})\d+/i);
-              airlineCode = match ? match[1].toUpperCase() : "UNKNOWN";
-              console.log(
-                "Extracted airline code from flight number:",
-                airlineCode
-              );
+              console.log("Raw flight data for airline extraction:", {
+                flight: data.flight,
+                registration: data.r,
+                hex: data.hex
+              });
+              
+              // Special handling for N-numbers (private aircraft)
+              if (data.flight.trim().match(/^N\d+[A-Z]*\s*$/i)) {
+                console.log("Detected N-number (private aircraft):", data.flight.trim());
+                airlineCode = "PRIVATE";
+              }
+              // Check if flight number starts with a known airline code
+              else {
+                const knownAirlineCodes = ["DAL", "UAL", "AAL", "SWA", "DHL", "EDV"];
+                let foundCode = false;
+                
+                for (const code of knownAirlineCodes) {
+                  if (data.flight.trim().startsWith(code)) {
+                    airlineCode = code;
+                    foundCode = true;
+                    console.log(`Found known airline code at start of flight number: ${airlineCode}`);
+                    break;
+                  }
+                }
+                
+                if (!foundCode) {
+                  // Extract from flight number (e.g., "DAL1234" -> "DAL")
+                  const match = data.flight.trim().match(/^([A-Z]{3})\d+/i);
+                  airlineCode = match ? match[1].toUpperCase() : "UNKNOWN";
+                  console.log("Extracted airline code from flight number:", airlineCode);
+                }
+              }
             } else {
               // Default to UNKNOWN if no flight code
               airlineCode = "UNKNOWN";
@@ -76,68 +100,141 @@ export function useLandingAircraft() {
             console.log("Extracted airline code:", airlineCode);
 
             // Make sure the airline code is one we have a logo for
-            const validAirlineCode = getValidAirlineCode(airlineCode);
+            let validAirlineCode = getValidAirlineCode(airlineCode);
+            
+            // Special handling for EDV (Endeavor Air) - it's a Delta Connection carrier
+            if (airlineCode === "EDV") {
+              console.log("Handling Endeavor Air as a Delta Connection carrier");
+              // We'll keep the EDV code if we have a logo for it, otherwise use DAL
+              if (validAirlineCode === "UNKNOWN") {
+                validAirlineCode = "EDV";
+              }
+            }
+            
             console.log("Valid airline code for logo:", validAirlineCode);
 
             // Extract flight number without airline code
-            let flightNumber = "Unknown";
+            let flightNumber = "N/A";
             if (data.flight) {
-              const match = data.flight.trim().match(/^[A-Z]{3}(\d+)/i);
-              flightNumber = match ? match[1] : data.flight.trim();
-              console.log(
-                "Extracted flight number from data.flight:",
-                flightNumber
-              );
+              // Try to match standard airline code + number format (e.g., DAL1234)
+              const standardMatch = data.flight.trim().match(/^[A-Z]{3}(\d+)/i);
+              if (standardMatch) {
+                flightNumber = standardMatch[1];
+                console.log("Extracted standard flight number format:", flightNumber);
+              } else {
+                // For non-standard formats, check if it's a valid commercial flight number
+                // Commercial flight numbers are typically just numbers, sometimes with a letter
+                const commercialMatch = data.flight.trim().match(/(\d{1,4}[A-Z]?)/i);
+                if (commercialMatch) {
+                  flightNumber = commercialMatch[1];
+                  console.log("Extracted commercial flight number:", flightNumber);
+                } else {
+                  // If we can't extract a valid flight number, use N/A
+                  flightNumber = "N/A";
+                  console.log("Could not extract valid flight number, using N/A");
+                }
+              }
             } else if (flightInfo?.flight_number) {
-              const match = flightInfo.flight_number.match(/^[A-Z]{3}(\d+)/i);
-              flightNumber = match ? match[1] : flightInfo.flight_number;
-              console.log(
-                "Extracted flight number from flightInfo:",
-                flightNumber
-              );
+              // Same logic for flightInfo.flight_number
+              const standardMatch = flightInfo.flight_number.match(/^[A-Z]{3}(\d+)/i);
+              if (standardMatch) {
+                flightNumber = standardMatch[1];
+                console.log("Extracted standard flight number from flightInfo:", flightNumber);
+              } else {
+                const commercialMatch = flightInfo.flight_number.match(/(\d{1,4}[A-Z]?)/i);
+                if (commercialMatch) {
+                  flightNumber = commercialMatch[1];
+                  console.log("Extracted commercial flight number from flightInfo:", flightNumber);
+                }
+              }
             }
 
             console.log("Final flight number:", flightNumber);
 
-            // Create a mock flight for testing if no flight info is available
+            // Create a flight data object when no flight info is available
             if (!flightInfo) {
               console.log(
-                "No flight info found, creating mock data for testing"
+                "No flight info found, creating basic flight data"
               );
 
-              // Create landing flight data with mock values
-              const mockLandingData: LandingFlightData = {
+              // Extract a clean flight number or use N/A
+              const cleanFlightNumber = flightNumber !== "N/A" ? flightNumber : "N/A";
+
+              // Determine appropriate display values based on aircraft type
+              let originDisplay = "Private Flight";
+              let flightTimeDisplay = "N/A";
+              
+              // For N-numbers, it's likely a private aircraft
+              if (data.flight && data.flight.trim().match(/^N\d+[A-Z]*\s*$/i)) {
+                validAirlineCode = "PRIVATE";
+              }
+              
+              // Create landing flight data with available values
+              const basicLandingData: LandingFlightData = {
                 title: "Upcoming Landing",
-                number: data.flight?.trim() || "12345",
-                airline: "DAL",
-                origin: "Atlanta",
+                number: cleanFlightNumber,
+                airline: validAirlineCode,
+                origin: originDisplay,
                 runway: "Approaching",
-                originCode: "ATL",
-                registration: data.r || "N12345",
+                originCode: "",
+                registration: data.r || "N/A",
                 altitude: typeof data.alt_baro === "number" ? data.alt_baro : 0,
                 speed: data.gs || 0,
                 verticalRate: data.baro_rate || 0,
-                flightTime: "2h 15m",
+                flightTime: flightTimeDisplay,
               };
 
-              console.log("Setting mock landing flight data:", mockLandingData);
-              setLandingFlightData(mockLandingData);
+              console.log("Setting basic landing flight data:", basicLandingData);
+              setLandingFlightData(basicLandingData);
               setIsLoading(false);
               return;
             }
 
+            // Determine origin display based on airline code and flight info
+            let originDisplay = "Unknown";
+            let originCodeDisplay = "";
+            let flightTimeDisplay = "N/A";
+            
+            // Log flight info for debugging
+            console.log("Flight info for origin/duration:", {
+              flightInfo,
+              validAirlineCode,
+              flight: data.flight,
+              registration: data.r
+            });
+            
+            if (flightInfo) {
+              originDisplay = flightInfo.origin_city || "Unknown";
+              originCodeDisplay = flightInfo.origin || "";
+              flightTimeDisplay = flightInfo.flight_time || "N/A";
+              console.log("Using flight info for origin/duration:", {
+                origin: originDisplay,
+                originCode: originCodeDisplay,
+                flightTime: flightTimeDisplay
+              });
+            } else if (validAirlineCode === "PRIVATE") {
+              originDisplay = "Private Flight";
+              originCodeDisplay = "";
+            } else {
+              // For commercial flights without flight info, try to provide better defaults
+              if (["DAL", "UAL", "AAL", "SWA", "EDV"].includes(validAirlineCode)) {
+                originDisplay = "En Route";
+                console.log("Using default commercial flight origin");
+              }
+            }
+            
             const newLandingFlightData = {
               title: "Upcoming Landing",
               number: flightNumber,
               airline: validAirlineCode,
-              origin: flightInfo?.origin_city || "Unknown",
+              origin: originDisplay,
               runway: "Approaching",
-              originCode: flightInfo?.origin || "???",
+              originCode: originCodeDisplay,
               registration: data.r || flightInfo?.registration || "Unknown",
               altitude: typeof data.alt_baro === "number" ? data.alt_baro : 0,
               speed: data.gs || 0,
               verticalRate: data.baro_rate || 0,
-              flightTime: flightInfo?.flight_time || "N/A",
+              flightTime: flightTimeDisplay,
             };
 
             console.log("Setting landing flight data:", newLandingFlightData);

@@ -179,11 +179,7 @@ export default function Home() {
           </div>
 
           <div className="mt-[100px] max-w-[900px] mx-[40px] relative z-10">
-            {/* Landing alert will be shown automatically when an aircraft is landing */}
-            <LandingAlertManager />
             <FlightBannerBottom />
-            {/* Debug panel will only be shown if debug mode is enabled */}
-            {LANDING_DEBUG_MODE && <LandingDebugPanel />}
           </div>
         </main>
       </>

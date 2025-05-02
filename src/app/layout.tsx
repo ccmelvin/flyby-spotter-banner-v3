@@ -2,6 +2,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import ReactQueryProvider from "@/providers/ReactQueryProvider";
+import LandingAlertManager from "@/components/LandingAlertManager";
+import LandingDebugPanel from "@/components/LandingDebugPanel";
+import { LANDING_DEBUG_MODE } from "@/constants/polling";
 
 import "./globals.css";
 
@@ -31,11 +34,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-     
-          <ReactQueryProvider>
-            {children}
-          </ReactQueryProvider>
-      
+        <ReactQueryProvider>
+          {/* Always mount LandingAlertManager regardless of route or auth state */}
+          <LandingAlertManager />
+          {/* Debug panel will only be shown if debug mode is enabled */}
+          {LANDING_DEBUG_MODE && <LandingDebugPanel />}
+          {children}
+        </ReactQueryProvider>
       </body>
     </html>
   );

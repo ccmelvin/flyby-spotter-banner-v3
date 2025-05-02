@@ -20,6 +20,10 @@ const getAirlineName = (code: string): string => {
     AAL: "American Airlines",
     SWA: "Southwest Airlines",
     DHL: "DHL Aviation",
+    EDV: "Endeavor Air",
+    N21: "Private Aircraft",
+    PRIVATE: "Private Aircraft",
+    UNKNOWN: "Unknown Carrier",
   };
 
   return airlineNames[code] || code;
@@ -120,7 +124,9 @@ export default function FlightApproachDisplay({
             <div>
               <p className="text-sm text-gray-500">From</p>
               <p className="font-medium text-blue-800">
-                {flight.origin} – {flight.originCode}
+                {flight.origin !== "Unknown" && flight.origin !== "Private Flight" ? flight.origin : 
+                 flight.airline === "PRIVATE" ? "Private Flight" : "En Route"} 
+                {flight.originCode ? ` – ${flight.originCode}` : ""}
               </p>
             </div>
           </div>
@@ -128,7 +134,11 @@ export default function FlightApproachDisplay({
           <div className="flex items-start gap-4 p-3 bg-gray-50 rounded-lg">
             <div>
               <p className="text-sm text-gray-500">Aircraft</p>
-              <p className="font-medium text-blue-800">{flight.registration}</p>
+              <p className="font-medium text-blue-800">
+                {flight.registration !== "N/A" && flight.registration !== "Unknown" 
+                  ? flight.registration 
+                  : "Private Aircraft"}
+              </p>
             </div>
             <div className="border-l pl-4">
               <p className="text-sm text-gray-500">Flight Duration</p>

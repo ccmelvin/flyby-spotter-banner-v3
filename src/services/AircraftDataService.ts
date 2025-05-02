@@ -196,11 +196,11 @@ class AircraftDataService {
 
     // Clean up the flight number by removing spaces
     const cleanFlightNumber = flightNumber.trim();
-
+    
     this.log(`Looking up flight info for: "${cleanFlightNumber}"`);
-
-    // Find the flight in our local data
-    const flightInfo = this.flightData.flights.find((flight) => {
+    
+    // First try exact match
+    let flightInfo = this.flightData.flights.find((flight) => {
       // Try to match by flight number (case insensitive)
       if (flight.flight_number && cleanFlightNumber) {
         // Normalize both flight numbers for comparison
@@ -213,16 +213,26 @@ class AircraftDataService {
           .replace(/\s+/g, "");
 
         if (normalizedFlightNumber === normalizedSearchNumber) {
-          this.log(`Found match by flight number: ${flight.flight_number}`);
+          this.log(`Found exact match for flight: ${flight.flight_number}`);
           return true;
         }
-
+      }
+      return false;
+    });
+    
+    if (flightInfo) {
+      return flightInfo;
+    }
+    
+    // Try matching just the numeric part
+    flightInfo = this.flightData.flights.find((flight) => {
+      if (flight.flight_number && cleanFlightNumber) {
         // Try matching just the numeric part (for cases where airline code might differ)
-        const flightNumberDigits = normalizedFlightNumber.replace(
+        const flightNumberDigits = flight.flight_number.replace(
           /[^0-9]/g,
           ""
         );
-        const searchNumberDigits = normalizedSearchNumber.replace(
+        const searchNumberDigits = cleanFlightNumber.replace(
           /[^0-9]/g,
           ""
         );
@@ -230,7 +240,8 @@ class AircraftDataService {
         if (
           flightNumberDigits &&
           searchNumberDigits &&
-          flightNumberDigits === searchNumberDigits
+          flightNumberDigits === searchNumberDigits &&
+          flightNumberDigits.length > 0
         ) {
           this.log(
             `Found match by flight number digits: ${flightNumberDigits}`
@@ -238,60 +249,80 @@ class AircraftDataService {
           return true;
         }
       }
-
-      // Try to match by registration (case insensitive)
-      if (flight.registration && cleanFlightNumber) {
-        const normalizedRegistration = flight.registration
-          .toLowerCase()
-          .replace(/\s+/g, "");
-        const normalizedSearchNumber = cleanFlightNumber
-          .toLowerCase()
-          .replace(/\s+/g, "");
-
-        if (normalizedRegistration === normalizedSearchNumber) {
-          this.log(`Found match by registration: ${flight.registration}`);
-          return true;
-        }
-      }
-
       return false;
     });
-
+    
     if (flightInfo) {
-      this.log(`Found flight info:`, flightInfo);
-    } else {
-      this.log(`No flight info found for: "${cleanFlightNumber}"`);
+      return flightInfo;
+    }
+    
+    // Try matching by registration
+    if (cleanFlightNumber.match(/^N\d+[A-Z]*$/i)) {
+      flightInfo = this.flightData.flights.find((flight) => {
+        if (flight.registration && cleanFlightNumber) {
+          const normalizedRegistration = flight.registration
+            .toLowerCase()
+            .replace(/\s+/g, "");
+          const normalizedSearchNumber = cleanFlightNumber
+            .toLowerCase()
+            .replace(/\s+/g, "");
 
-      // If no match found, try a more flexible search
-      this.log("Trying flexible search...");
-
-      // Look for partial matches in flight numbers
-      const partialMatches = this.flightData.flights.filter((flight) => {
-        if (!flight.flight_number || !cleanFlightNumber) return false;
-
-        const normalizedFlightNumber = flight.flight_number
-          .trim()
-          .toLowerCase();
-        const normalizedSearchNumber = cleanFlightNumber.toLowerCase();
-
-        // Check if one contains the other
-        return (
-          normalizedFlightNumber.includes(normalizedSearchNumber) ||
-          normalizedSearchNumber.includes(normalizedFlightNumber)
-        );
+          if (normalizedRegistration === normalizedSearchNumber) {
+            this.log(`Found match by registration: ${flight.registration}`);
+            return true;
+          }
+        }
+        return false;
       });
-
-      if (partialMatches.length > 0) {
-        this.log(
-          `Found ${partialMatches.length} partial matches:`,
-          partialMatches
-        );
-        // Return the first partial match
-        return partialMatches[0];
+      
+      if (flightInfo) {
+        return flightInfo;
       }
     }
 
-    return flightInfo || null;
+    // If no match found, try a more flexible search
+    this.log(`No direct match found for: "${cleanFlightNumber}", trying flexible search...`);
+
+    // Look for partial matches in flight numbers
+    const partialMatches = this.flightData.flights.filter((flight) => {
+      if (!flight.flight_number || !cleanFlightNumber) return false;
+
+      const normalizedFlightNumber = flight.flight_number
+        .trim()
+        .toLowerCase();
+      const normalizedSearchNumber = cleanFlightNumber.toLowerCase();
+
+      // Check if one contains the other
+      return (
+        normalizedFlightNumber.includes(normalizedSearchNumber) ||
+        normalizedSearchNumber.includes(normalizedFlightNumber)
+      );
+    });
+
+    if (partialMatches.length > 0) {
+      this.log(
+        `Found ${partialMatches.length} partial matches:`,
+        partialMatches
+      );
+      // Return the first partial match
+      return partialMatches[0];
+    }
+    
+    // Special handling for EDV (Endeavor Air) flights - try to match with Delta flights
+    if (cleanFlightNumber.startsWith("EDV")) {
+      this.log("Trying to match Endeavor Air flight with Delta flights");
+      const deltaFlights = this.flightData.flights.filter(flight => 
+        flight.airline === "DAL" || flight.flight_number.startsWith("DAL")
+      );
+      
+      if (deltaFlights.length > 0) {
+        this.log("Using a Delta flight as a fallback for Endeavor Air flight");
+        return deltaFlights[0];
+      }
+    }
+
+    this.log(`No flight info found for: "${cleanFlightNumber}" after all attempts`);
+    return null;
   }
 
   /**
@@ -555,6 +586,7 @@ class AircraftDataService {
    */
   private notifyListeners(event: string, data: any): void {
     this.log(`Notifying ${this.listeners.length} listeners of event: ${event}`);
+    console.log(`[AircraftDataService] Notifying ${this.listeners.length} listeners of event: ${event}`);
 
     this.listeners.forEach((listener) => {
       try {

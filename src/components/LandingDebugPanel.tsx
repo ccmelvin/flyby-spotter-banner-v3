@@ -70,6 +70,23 @@ export default function LandingDebugPanel() {
     );
   };
 
+  // Format flight number to handle invalid formats
+  const formatFlightNumber = (flight?: string): string => {
+    if (!flight) return "N/A";
+    // Try to match standard airline code + number format (e.g., DAL1234)
+    const standardMatch = flight.trim().match(/^[A-Z]{3}(\d+)/i);
+    if (standardMatch) {
+      return standardMatch[1];
+    }
+    // For non-standard formats, check if it's a valid commercial flight number
+    const commercialMatch = flight.trim().match(/(\d{1,4}[A-Z]?)/i);
+    if (commercialMatch) {
+      return commercialMatch[1];
+    }
+    // If it's not a recognizable format, return N/A
+    return "N/A";
+  };
+
   // Process logs to separate triggered flights
   const processLogs = (logs: LandingDebugLog[]): {
     triggeredFlights: Array<{ entry: LandingDebugEntry; timestamp: string }>;
@@ -180,7 +197,7 @@ export default function LandingDebugPanel() {
                               className="border-t border-blue-200 bg-green-50"
                             >
                               <td className="p-1 font-bold">
-                                {item.entry.flight || item.entry.hex.substring(0, 6)}
+                                {formatFlightNumber(item.entry.flight) || item.entry.hex.substring(0, 6)}
                               </td>
                               <td className="p-1">{item.entry.altitude}ft</td>
                               <td className="p-1">
@@ -252,7 +269,7 @@ export default function LandingDebugPanel() {
                               className="border-t border-gray-200"
                             >
                               <td className="p-1">
-                                {entry.flight || entry.hex.substring(0, 6)}
+                                {formatFlightNumber(entry.flight) || entry.hex.substring(0, 6)}
                               </td>
                               <td className="p-1">{entry.altitude}ft</td>
                               <td className="p-1">
