@@ -15,12 +15,12 @@ interface FlightApproachDisplayProps {
 // Helper function to get airline full name from code
 const getAirlineName = (code: string): string => {
   const airlineNames: Record<string, string> = {
-    DAL: "Delta AirLines",
+    DAL: "Delta Airlines",
     UAL: "United Airlines",
     AAL: "American Airlines",
     SWA: "Southwest Airlines",
     DHL: "DHL Aviation",
-    EDV: "Endeavor Air",
+    EDV: "Delta Connection",
     N21: "Private Aircraft",
     PRIVATE: "Private Aircraft",
     UNKNOWN: "Unknown Carrier",
@@ -124,8 +124,11 @@ export default function FlightApproachDisplay({
             <div>
               <p className="text-sm text-gray-500">From</p>
               <p className="font-medium text-blue-800">
-                {flight.origin !== "Unknown" && flight.origin !== "Private Flight" ? flight.origin : 
-                 flight.airline === "PRIVATE" ? "Private Flight" : "En Route"} 
+                {flight.origin.startsWith("Local Flight") ? flight.origin :
+                 flight.origin.includes("Flight") ? flight.origin :
+                 flight.origin !== "Unknown" && flight.origin !== "Private Flight" ? flight.origin : 
+                 flight.airline === "PRIVATE" ? "Private Flight" : 
+                 `${getAirlineName(flight.airline)} Flight`} 
                 {flight.originCode ? ` – ${flight.originCode}` : ""}
               </p>
             </div>
@@ -143,7 +146,10 @@ export default function FlightApproachDisplay({
             <div className="border-l pl-4">
               <p className="text-sm text-gray-500">Flight Duration</p>
               <p className="font-medium text-blue-800">
-                {flight.flightTime || "N/A"}
+                {flight.flightTime === "Local Training" ? "Local Training" :
+                 flight.flightTime === "Approaching" ? "Approaching" :
+                 flight.flightTime !== "N/A" ? flight.flightTime :
+                 flight.airline === "PRIVATE" ? "Private Flight" : "Approaching"}
               </p>
             </div>
             <div className="border-l pl-4">

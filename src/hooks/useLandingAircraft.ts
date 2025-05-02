@@ -69,6 +69,11 @@ export function useLandingAircraft() {
               if (data.flight.trim().match(/^N\d+[A-Z]*\s*$/i)) {
                 console.log("Detected N-number (private aircraft):", data.flight.trim());
                 airlineCode = "PRIVATE";
+                
+                // Log aircraft type if available
+                if (data.t) {
+                  console.log("Aircraft type for private aircraft:", data.t);
+                }
               }
               // Check if flight number starts with a known airline code
               else {
@@ -162,11 +167,48 @@ export function useLandingAircraft() {
 
               // Determine appropriate display values based on aircraft type
               let originDisplay = "Private Flight";
-              let flightTimeDisplay = "N/A";
+              let flightTimeDisplay = "Private Flight";
               
               // For N-numbers, it's likely a private aircraft
               if (data.flight && data.flight.trim().match(/^N\d+[A-Z]*\s*$/i)) {
                 validAirlineCode = "PRIVATE";
+                
+                // Extract aircraft type if available
+                if (data.t) {
+                  console.log("Aircraft type information:", data.t);
+                  
+                  // Extract just the model name from the type string
+                  // Common formats: "P28A" (Piper PA-28), "C172" (Cessna 172), etc.
+                  let aircraftModel = "";
+                  
+                  // Map of common aircraft type codes to readable names
+                  const aircraftTypes: Record<string, string> = {
+                    "P28": "Piper PA-28",
+                    "P32": "Piper PA-32",
+                    "C172": "Cessna 172",
+                    "C152": "Cessna 152",
+                    "C182": "Cessna 182",
+                    "BE20": "Beechcraft King Air",
+                    "BE36": "Beechcraft Bonanza",
+                    "BE58": "Beechcraft Baron",
+                    "PA44": "Piper Seminole"
+                  };
+                  
+                  // Try to match the type code
+                  for (const [code, name] of Object.entries(aircraftTypes)) {
+                    if (data.t.includes(code)) {
+                      aircraftModel = name;
+                      break;
+                    }
+                  }
+                  
+                  // If we found a model, use it for origin display
+                  if (aircraftModel) {
+                    originDisplay = `Local Flight (${aircraftModel})`;
+                    flightTimeDisplay = "Local Training";
+                    console.log("Using aircraft model for origin display:", originDisplay);
+                  }
+                }
               }
               
               // Create landing flight data with available values
@@ -200,7 +242,8 @@ export function useLandingAircraft() {
               flightInfo,
               validAirlineCode,
               flight: data.flight,
-              registration: data.r
+              registration: data.r,
+              type: data.t
             });
             
             if (flightInfo) {
@@ -213,13 +256,64 @@ export function useLandingAircraft() {
                 flightTime: flightTimeDisplay
               });
             } else if (validAirlineCode === "PRIVATE") {
-              originDisplay = "Private Flight";
-              originCodeDisplay = "";
+              // For private aircraft, check if we can extract aircraft type
+              if (data.t) {
+                console.log("Aircraft type information for private aircraft:", data.t);
+                
+                // Extract just the model name from the type string
+                // Common formats: "P28A" (Piper PA-28), "C172" (Cessna 172), etc.
+                let aircraftModel = "";
+                
+                // Map of common aircraft type codes to readable names
+                const aircraftTypes: Record<string, string> = {
+                  "P28": "Piper PA-28",
+                  "P32": "Piper PA-32",
+                  "C172": "Cessna 172",
+                  "C152": "Cessna 152",
+                  "C182": "Cessna 182",
+                  "BE20": "Beechcraft King Air",
+                  "BE36": "Beechcraft Bonanza",
+                  "BE58": "Beechcraft Baron",
+                  "PA44": "Piper Seminole"
+                };
+                
+                // Try to match the type code
+                for (const [code, name] of Object.entries(aircraftTypes)) {
+                  if (data.t.includes(code)) {
+                    aircraftModel = name;
+                    break;
+                  }
+                }
+                
+                // If we found a model, use it for origin display
+                if (aircraftModel) {
+                  originDisplay = `Local Flight (${aircraftModel})`;
+                  flightTimeDisplay = "Local Training";
+                  console.log("Using aircraft model for origin display:", originDisplay);
+                } else {
+                  originDisplay = "Private Flight";
+                  originCodeDisplay = "";
+                }
+              } else {
+                originDisplay = "Private Flight";
+                originCodeDisplay = "";
+              }
             } else {
               // For commercial flights without flight info, try to provide better defaults
               if (["DAL", "UAL", "AAL", "SWA", "EDV"].includes(validAirlineCode)) {
-                originDisplay = "En Route";
-                console.log("Using default commercial flight origin");
+                // Use airline name to create a more informative origin
+                const airlineNames: Record<string, string> = {
+                  "DAL": "Delta",
+                  "UAL": "United",
+                  "AAL": "American",
+                  "SWA": "Southwest",
+                  "EDV": "Delta Connection"
+                };
+                
+                const airlineName = airlineNames[validAirlineCode] || validAirlineCode;
+                originDisplay = `${airlineName} Flight`;
+                flightTimeDisplay = "Approaching";
+                console.log(`Using default commercial flight info for ${airlineName}`);
               }
             }
             
